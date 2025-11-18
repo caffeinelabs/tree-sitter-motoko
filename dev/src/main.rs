@@ -5,11 +5,12 @@ use camino::Utf8Path;
 use walkdir::WalkDir;
 
 /// Tests for parse errors not labeled as syntax-*
-const TEST_FAIL_EXCLUDES: [&str; 15] = [
+const TEST_FAIL_EXCLUDES: [&str; 16] = [
     "par-bad-asyncstar.mo",
     "obj-empty-with.mo",
     "lexer-offset-1504.mo",
     "multiline-text-line-number.mo",
+    "parse-block-or-record.mo", // Tests error recovery
     "syntax1.mo",
     "syntax2.mo",
     "syntax3.mo",

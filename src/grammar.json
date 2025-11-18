@@ -189,7 +189,7 @@
     },
     "text_literal": {
       "type": "PATTERN",
-      "value": "\"(?:\\\\\"|[^\"])*\""
+      "value": "\"(?:\\\\[unrt\\\\\"'0-9a-fA-F]|[^\\\\\"])*\""
     },
     "char_literal": {
       "type": "PATTERN",

@@ -1,0 +1,34 @@
+==================
+Text
+==================
+
+"Hallo";
+"Hallo\"";
+"Invalid escape character: \\" # Text.fromChar(c);
+"";
+
+---
+
+(source_file
+  (exp_dec
+    (lit_exp
+      (text_literal)))
+  (exp_dec
+    (lit_exp
+      (text_literal)))
+  (exp_dec
+    (bin_exp_object
+      (lit_exp
+        (text_literal))
+      (bin_op)
+      (call_exp_object
+        (dot_exp_object
+          (var_exp
+            (identifier))
+          (identifier))
+        (par_exp
+          (var_exp
+            (identifier))))))
+  (exp_dec
+    (lit_exp
+      (text_literal))))

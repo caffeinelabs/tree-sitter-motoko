@@ -295,7 +295,7 @@ module.exports = grammar({
     proj_identifier: $ => token.immediate(/[0-9]+/),
 
     // Literals
-    text_literal: $ => /"(?:\\"|[^"])*"/,
+    text_literal: $ => /"(?:\\[unrt\\"'0-9a-fA-F]|[^\\"])*"/,
     char_literal: $ => /'\\''|'[^']*'/,
     float_literal: $ => token(choice(
       /[+-]?[0-9_]+\.[0-9_]*/,
