@@ -681,11 +681,13 @@ module.exports = grammar({
 
     break_exp: $ => seq(
       "break",
-      $.identifier,
-      optional($._exp_nullary_object),
+      optional(seq(
+        field("label", $.identifier),
+        optional($._exp_nullary_object),
+      )),
     ),
 
-    continue_exp: $ => seq("continue", $.identifier),
+    continue_exp: $ => seq("continue", optional(field("label", $.identifier))),
     debug_exp: $ => seq("debug", $._exp_nest),
     throw_exp: $ => seq("throw", $._exp_nest),
     // TODO(id: prec.nonassoc)
