@@ -1,6 +1,6 @@
 /**
  * @file Motoko grammar for tree-sitter
- * @author Christoph Hegemann <christoph.hegemann@dfinity.org>
+ * @author Christoph Hegemann <christoph.hegemann@caffeine.ai>
  * @license Apache-2.0
  */
 

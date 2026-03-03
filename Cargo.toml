@@ -2,12 +2,12 @@
 name = "tree-sitter-motoko"
 description = "Motoko grammar for tree-sitter"
 version = "0.1.0"
-authors = ["Christoph Hegemann <christoph.hegemann@dfinity.org>"]
+authors = ["Christoph Hegemann <christoph.hegemann@caffeine.ai>"]
 license = "Apache-2.0"
 readme = "README.md"
 keywords = ["incremental", "parsing", "tree-sitter", "motoko"]
 categories = ["parser-implementations", "parsing", "text-editors"]
-repository = "https://github.com/tree-sitter/tree-sitter-motoko"
+repository = "https://github.com/caffeinelabs/tree-sitter-motoko"
 edition = "2021"
 autoexamples = false
 

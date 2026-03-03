@@ -20,11 +20,11 @@
     "authors": [
       {
         "name": "Christoph Hegemann",
-        "email": "christoph.hegemann@dfinity.org"
+        "email": "christoph.hegemann@caffeine.ai"
       }
     ],
     "links": {
-      "repository": "https://github.com/christoph-dfinity/tree-sitter-motoko"
+      "repository": "https://github.com/caffeinelabs/tree-sitter-motoko"
     }
   },
   "bindings": {
