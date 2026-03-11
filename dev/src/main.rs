@@ -1,4 +1,6 @@
 use std::fs;
+use std::process;
+use std::env;
 
 use anyhow::{Context, Result};
 use camino::Utf8Path;
@@ -25,18 +27,22 @@ const TEST_FAIL_EXCLUDES: [&str; 16] = [
 ];
 
 fn main() -> Result<()> {
-    let ts_base = Utf8Path::new("/Users/christoph.hegemann/work/tree-sitter-motoko");
+    if !fs::exists("../justfile")? || !fs::exists("../tree-sitter.json")? {
+        eprintln!("Error: Expected to run via `just test-generate` in the top-level directory of `tree-sitter-motoko`");
+        process::exit(1)
+    }
+
+    env::set_current_dir("..")?;
+
     copy_test_cases(
-        Utf8Path::new("/Users/christoph.hegemann/work/motoko/test/fail"),
-        ts_base,
+        Utf8Path::new("../motoko/test/fail"),
         "fail",
         &TEST_FAIL_EXCLUDES,
     )
     .unwrap();
 
     copy_test_cases(
-        Utf8Path::new("/Users/christoph.hegemann/work/motoko/test/run"),
-        ts_base,
+        Utf8Path::new("../motoko/test/run"),
         "run",
         // Contains a random Ctrl character
         &["menhir-bug.mo"],
@@ -44,50 +50,32 @@ fn main() -> Result<()> {
     .unwrap();
 
     copy_test_cases(
-        Utf8Path::new("/Users/christoph.hegemann/work/motoko-core/src"),
-        ts_base,
+        Utf8Path::new("../motoko-core/src"),
         "core/src",
         &[],
     )?;
 
     copy_test_cases(
-        Utf8Path::new("/Users/christoph.hegemann/work/motoko-core/test"),
-        ts_base,
+        Utf8Path::new("../motoko-core/test"),
         "core/test",
         &[],
     )?;
 
     copy_test_cases(
-        Utf8Path::new("/Users/christoph.hegemann/work/motoko-core/bench"),
-        ts_base,
+        Utf8Path::new("../motoko-core/bench"),
         "core/bench",
         &[],
-    )?;
-
-    copy_test_cases(
-        Utf8Path::new("/Users/christoph.hegemann/work/motoko-snafu/src"),
-        ts_base,
-        "snafu/src",
-        &[],
-    )?;
-
-    copy_test_cases(
-        Utf8Path::new("/Users/christoph.hegemann/work/motoko-snafu/test"),
-        ts_base,
-        "snafu/test",
-        &[]
     )?;
     Ok(())
 }
 
 fn copy_test_cases(
     mo_base: &Utf8Path,
-    ts_base: &Utf8Path,
     prefix: &str,
     excludes: &[&str],
 ) -> Result<()> {
-    let test_dir = ts_base
-        .join("test")
+    let test_dir =
+        Utf8Path::new("test")
         .join("corpus")
         .join("generated")
         .join(prefix);
