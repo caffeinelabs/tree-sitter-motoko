@@ -8922,7 +8922,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "actor_exp",
@@ -9204,7 +9204,19 @@
           "named": true
         },
         {
+          "type": "alt_pat",
+          "named": true
+        },
+        {
           "type": "annot_exp_block",
+          "named": true
+        },
+        {
+          "type": "annot_exp_object",
+          "named": true
+        },
+        {
+          "type": "annot_pat",
           "named": true
         },
         {
@@ -9216,11 +9228,19 @@
           "named": true
         },
         {
+          "type": "array_idx_exp_object",
+          "named": true
+        },
+        {
           "type": "assert_exp",
           "named": true
         },
         {
           "type": "assign_exp_block",
+          "named": true
+        },
+        {
+          "type": "assign_exp_object",
           "named": true
         },
         {
@@ -9244,11 +9264,23 @@
           "named": true
         },
         {
+          "type": "bang_exp_object",
+          "named": true
+        },
+        {
           "type": "bin_exp_block",
           "named": true
         },
         {
+          "type": "bin_exp_object",
+          "named": true
+        },
+        {
           "type": "binassign_exp_block",
+          "named": true
+        },
+        {
+          "type": "binassign_exp_object",
           "named": true
         },
         {
@@ -9261,6 +9293,10 @@
         },
         {
           "type": "call_exp_block",
+          "named": true
+        },
+        {
+          "type": "call_exp_object",
           "named": true
         },
         {
@@ -9289,6 +9325,10 @@
         },
         {
           "type": "dot_exp_block",
+          "named": true
+        },
+        {
+          "type": "dot_exp_object",
           "named": true
         },
         {
@@ -9336,6 +9376,10 @@
           "named": true
         },
         {
+          "type": "lit_pat",
+          "named": true
+        },
+        {
           "type": "loop_exp",
           "named": true
         },
@@ -9349,6 +9393,14 @@
         },
         {
           "type": "obj_dec",
+          "named": true
+        },
+        {
+          "type": "obj_pat",
+          "named": true
+        },
+        {
+          "type": "object_exp",
           "named": true
         },
         {
@@ -9368,7 +9420,15 @@
           "named": true
         },
         {
+          "type": "proj_exp_object",
+          "named": true
+        },
+        {
           "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "quest_pat",
           "named": true
         },
         {
@@ -9384,6 +9444,14 @@
           "named": true
         },
         {
+          "type": "system_exp_object",
+          "named": true
+        },
+        {
+          "type": "tag_pat",
+          "named": true
+        },
+        {
           "type": "throw_exp",
           "named": true
         },
@@ -9393,6 +9461,10 @@
         },
         {
           "type": "try_exp",
+          "named": true
+        },
+        {
+          "type": "tup_pat",
           "named": true
         },
         {
@@ -9408,6 +9480,10 @@
           "named": true
         },
         {
+          "type": "unop_pat",
+          "named": true
+        },
+        {
           "type": "var_dec",
           "named": true
         },
@@ -9416,11 +9492,19 @@
           "named": true
         },
         {
+          "type": "var_pat",
+          "named": true
+        },
+        {
           "type": "while_exp",
           "named": true
         },
         {
           "type": "wild_exp",
+          "named": true
+        },
+        {
+          "type": "wild_pat",
           "named": true
         }
       ]
