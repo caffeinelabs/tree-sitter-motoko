@@ -35,24 +35,22 @@ let x : Nat = 10 else 20;
 
 (source_file
   (let_else_dec
-    (let_dec
-      (var_pat
-        (identifier))
-      (lit_exp
-        (int_literal)))
+    (var_pat
+      (identifier))
+    (lit_exp
+      (int_literal))
     (lit_exp
       (int_literal)))
   (let_else_dec
-    (let_dec
-      (annot_pat
-        (var_pat
-          (identifier))
-        (typ_annot
-          (path_typ
-            (typ_path
-              (type_identifier)))))
-      (lit_exp
-        (int_literal)))
+    (annot_pat
+      (var_pat
+        (identifier))
+      (typ_annot
+        (path_typ
+          (typ_path
+            (type_identifier)))))
+    (lit_exp
+      (int_literal))
     (lit_exp
       (int_literal))))
 

@@ -448,17 +448,24 @@ module.exports = grammar({
       "var",
       $.var_pat,
       optional($.typ_annot),
-      "=",
-      $._exp_object,
+      optional(seq(
+        "=",
+        $._exp_object,
+      ))
     ),
     let_dec: $ => seq(
       "let",
       $._pat,
-      "=",
-      $._exp_object,
+      optional(seq(
+        "=",
+        $._exp_object,
+      ))
     ),
     let_else_dec: $ => seq(
-      $.let_dec,
+      "let",
+      $._pat,
+      "=",
+      $._exp_object,
       "else",
       $._exp_nest,
     ),
