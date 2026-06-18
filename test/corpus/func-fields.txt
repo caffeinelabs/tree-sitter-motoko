@@ -106,6 +106,40 @@ let r = { x = 1; func f() : Nat = 2 };
             (int_literal)))))))
 
 ==================
+Func-field with type parameters
+==================
+
+let r = { func id<T>(x : T) : T = x };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (object_exp
+      (exp_field
+        (func_field
+          name: (identifier)
+          typ_params: (typ_params
+            (typ_bind
+              name: (type_identifier)))
+          params: (tup_pat
+            (annot_pat
+              (var_pat
+                (identifier))
+              (typ_annot
+                (path_typ
+                  (typ_path
+                    (type_identifier))))))
+          return_ty: (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier))))
+          body: (var_exp
+            (identifier)))))))
+
+==================
 Func-field in parenthetical (with ...)
 ==================
 
