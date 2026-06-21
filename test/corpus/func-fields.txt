@@ -1,0 +1,198 @@
+==================
+Func-field (expression body)
+==================
+
+let r = { func f(x : Nat) : Nat = x };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (object_exp
+      (exp_field
+        (func_field
+          name: (identifier)
+          params: (tup_pat
+            (annot_pat
+              (var_pat
+                (identifier))
+              (typ_annot
+                (path_typ
+                  (typ_path
+                    (type_identifier))))))
+          return_ty: (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier))))
+          body: (var_exp
+            (identifier)))))))
+
+==================
+Func-field (block body, no return type)
+==================
+
+let r = { func g() { 0 } };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (object_exp
+      (exp_field
+        (func_field
+          name: (identifier)
+          params: (tup_pat)
+          body: (block_exp
+            (exp_dec
+              (lit_exp
+                (int_literal)))))))))
+
+==================
+Func-field in with-extension
+==================
+
+let s = { base with func f() : Nat = 7 };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (object_exp
+      (var_exp
+        (identifier))
+      (exp_field
+        (func_field
+          name: (identifier)
+          params: (tup_pat)
+          return_ty: (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier))))
+          body: (lit_exp
+            (int_literal)))))))
+
+==================
+Data field and func-field mixed
+==================
+
+let r = { x = 1; func f() : Nat = 2 };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (object_exp
+      (exp_field
+        (identifier)
+        (lit_exp
+          (int_literal)))
+      (exp_field
+        (func_field
+          name: (identifier)
+          params: (tup_pat)
+          return_ty: (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier))))
+          body: (lit_exp
+            (int_literal)))))))
+
+==================
+Func-field with type parameters
+==================
+
+let r = { func id<T>(x : T) : T = x };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (object_exp
+      (exp_field
+        (func_field
+          name: (identifier)
+          typ_params: (typ_params
+            (typ_bind
+              name: (type_identifier)))
+          params: (tup_pat
+            (annot_pat
+              (var_pat
+                (identifier))
+              (typ_annot
+                (path_typ
+                  (typ_path
+                    (type_identifier))))))
+          return_ty: (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier))))
+          body: (var_exp
+            (identifier)))))))
+
+==================
+Func-field in parenthetical (with ...)
+==================
+
+(with func migration(x : Nat) : Nat = x) actor { };
+
+---
+
+(source_file
+  (obj_dec
+    (parenthetical
+      (exp_field
+        (func_field
+          name: (identifier)
+          params: (tup_pat
+            (annot_pat
+              (var_pat
+                (identifier))
+              (typ_annot
+                (path_typ
+                  (typ_path
+                    (type_identifier))))))
+          return_ty: (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier))))
+          body: (var_exp
+            (identifier)))))
+    (obj_body)))
+
+==================
+Func-field in parenthetical (base with ...)
+==================
+
+let p = (base with func f() : Nat = 7) actor { };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (obj_dec
+      (parenthetical
+        (var_exp
+          (identifier))
+        (exp_field
+          (func_field
+            name: (identifier)
+            params: (tup_pat)
+            return_ty: (typ_annot
+              (path_typ
+                (typ_path
+                  (type_identifier))))
+            body: (lit_exp
+              (int_literal)))))
+      (obj_body))))

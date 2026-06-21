@@ -808,7 +808,12 @@ module.exports = grammar({
       ">",
     ),
 
-    exp_field: $ => seq(
+    exp_field: $ => choice(
+      $._data_field,
+      $.func_field,
+    ),
+
+    _data_field: $ => seq(
       optional("var"),
       $.identifier,
       optional($.typ_annot),
@@ -816,6 +821,18 @@ module.exports = grammar({
         "=",
         $._exp_object,
       ))
+    ),
+
+    // `func`-fields: `func name(params) : T <body>` as a record-literal field,
+    // sugar for `name = func(params) : T <body>` (moc #6184). No qualifiers,
+    // name required. Mirrors `func_dec` minus `_shared_pat`.
+    func_field: $ => seq(
+      "func",
+      field("name", $.identifier),
+      field("typ_params", optional($.typ_params)),
+      field("params", $._pat_plain),
+      field("return_ty", optional($.typ_annot)),
+      field("body", $._func_body),
     ),
 
     parenthetical: $ => seq(
