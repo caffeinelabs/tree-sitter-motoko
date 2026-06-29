@@ -291,7 +291,7 @@ module.exports = grammar({
     identifier: $ => /[a-zA-Z_][a-zA-Z_0-9]*/,
     _type_identifier: $ => alias($.identifier, $.type_identifier),
     tag_identifier: $ => seq("#", $.identifier),
-    privileged_identifier: $ => seq("@", token.immediate($.identifier)),
+    privileged_identifier: $ => seq("@", $.identifier),
     proj_identifier: $ => token.immediate(/[0-9]+/),
 
     // Literals
