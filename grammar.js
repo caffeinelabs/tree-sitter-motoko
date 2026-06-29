@@ -857,6 +857,7 @@ module.exports = grammar({
     _typ_un: $ => choice(
       $._typ_nullary,
       $.quest_typ,
+      $.double_quest_typ,
       $.weak_typ,
     ),
     _typ_pre: $ => choice(
@@ -914,6 +915,7 @@ module.exports = grammar({
       ),
     ),
     quest_typ: $ => seq("?", $._typ_un),
+    double_quest_typ: $ => seq("??", $._typ_un),
     weak_typ: $ => seq("weak", $._typ_un),
     prim_typ: $ => seq("prim", $.text_literal),
     async_typ: $ => seq(

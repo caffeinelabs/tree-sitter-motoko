@@ -157,6 +157,10 @@
           "named": true
         },
         {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
           "type": "func_typ",
           "named": true
         },
@@ -249,6 +253,10 @@
         },
         {
           "type": "double_quest_exp",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -400,6 +408,10 @@
         },
         {
           "type": "double_quest_exp",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -1335,6 +1347,10 @@
         },
         {
           "type": "async_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -2398,6 +2414,10 @@
         },
         {
           "type": "async_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -6597,6 +6617,49 @@
     }
   },
   {
+    "type": "double_quest_typ",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "array_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
+          "type": "obj_typ",
+          "named": true
+        },
+        {
+          "type": "path_typ",
+          "named": true
+        },
+        {
+          "type": "quest_typ",
+          "named": true
+        },
+        {
+          "type": "tup_typ",
+          "named": true
+        },
+        {
+          "type": "variant_typ",
+          "named": true
+        },
+        {
+          "type": "weak_typ",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "exp_dec",
     "named": true,
     "fields": {},
@@ -8607,6 +8670,10 @@
           "named": true
         },
         {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
           "type": "func_typ",
           "named": true
         },
@@ -8667,6 +8734,10 @@
         },
         {
           "type": "async_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -9802,6 +9873,10 @@
         },
         {
           "type": "async_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -11601,6 +11676,10 @@
           "named": true
         },
         {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
           "type": "func_typ",
           "named": true
         },
@@ -11989,6 +12068,10 @@
           "named": true
         },
         {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
           "type": "func_typ",
           "named": true
         },
@@ -12351,6 +12434,10 @@
       "types": [
         {
           "type": "array_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -13742,6 +13829,10 @@
           "named": true
         },
         {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
           "type": "func_typ",
           "named": true
         },
@@ -13815,6 +13906,10 @@
             "named": true
           },
           {
+            "type": "double_quest_typ",
+            "named": true
+          },
+          {
             "type": "func_typ",
             "named": true
           },
@@ -13883,6 +13978,10 @@
           "named": true
         },
         {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
           "type": "func_typ",
           "named": true
         },
@@ -13947,6 +14046,10 @@
         },
         {
           "type": "async_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -14078,6 +14181,10 @@
         },
         {
           "type": "async_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -14490,6 +14597,10 @@
           "named": true
         },
         {
+          "type": "double_quest_typ",
+          "named": true
+        },
+        {
           "type": "func_typ",
           "named": true
         },
@@ -14838,6 +14949,10 @@
       "types": [
         {
           "type": "array_typ",
+          "named": true
+        },
+        {
+          "type": "double_quest_typ",
           "named": true
         },
         {

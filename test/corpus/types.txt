@@ -107,7 +107,8 @@ type T = { #x : Nat; #y };
 Unary
 ==================
 
-type T = ?Nat
+type T = ?Nat;
+type U = ?? Nat
 
 ---
 
@@ -115,6 +116,12 @@ type T = ?Nat
   (typ_dec
     (type_identifier)
     (quest_typ
+      (path_typ
+        (typ_path
+          (type_identifier)))))
+  (typ_dec
+    (type_identifier)
+    (double_quest_typ
       (path_typ
         (typ_path
           (type_identifier))))))

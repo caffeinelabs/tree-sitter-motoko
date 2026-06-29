@@ -3825,6 +3825,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "double_quest_typ"
+        },
+        {
+          "type": "SYMBOL",
           "name": "weak_typ"
         }
       ]
@@ -4187,6 +4191,19 @@
         {
           "type": "STRING",
           "value": "?"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_typ_un"
+        }
+      ]
+    },
+    "double_quest_typ": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "??"
         },
         {
           "type": "SYMBOL",
