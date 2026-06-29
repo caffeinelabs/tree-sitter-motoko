@@ -87,6 +87,10 @@ function annot_exp($, b) {
   return $[`annot_exp_${b}`]
 }
 
+function coalesce_exp($, b) {
+  return $[`coalesce_exp_${b}`]
+}
+
 function binassign_exp($, b) {
   return $[`binassign_exp_${b}`]
 }
@@ -118,6 +122,7 @@ function mk_exp_non_dec($, b) {
     _exp_bin($, b),
     assign_exp($, b),
     binassign_exp($, b),
+    coalesce_exp($, b),
     $.return_exp,
     $.async_exp,
     $.asyncstar_exp,
@@ -258,6 +263,14 @@ function mk_annot_exp($, b) {
     _exp_bin($, b),
     ":",
     $._typ_no_bin,
+  )
+}
+
+function mk_coalesce_exp($, b) {
+return seq(
+    _exp_bin($, b),
+    "??",
+    $._exp_nest,
   )
 }
 
@@ -782,6 +795,9 @@ export default grammar({
 
     annot_exp_block: $ => mk_annot_exp($, "block"),
     annot_exp_object: $ => mk_annot_exp($, "object"),
+
+    coalesce_exp_block: $ => mk_coalesce_exp($, "block"),
+    coalesce_exp_object: $ => mk_coalesce_exp($, "object"),
 
     binassign_exp_block: $ => mk_binassign_exp($, "block"),
     binassign_exp_object: $ => mk_binassign_exp($, "object"),
