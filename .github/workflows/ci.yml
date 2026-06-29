@@ -23,6 +23,8 @@ jobs:
       - run: npx tree-sitter init --update
       - name: Check for drift
         run: |
+          # setup.py oscillates between two templates on each init --update run (upstream bug)
+          git checkout -- setup.py
           if ! git diff --exit-code; then
             echo "::error::Bindings are out of sync with tree-sitter.json. Run 'tree-sitter init --update' locally and commit the result."
             exit 1
