@@ -121,10 +121,11 @@ type U = ?? Nat
           (type_identifier)))))
   (typ_dec
     (type_identifier)
-    (double_quest_typ
-      (path_typ
-        (typ_path
-          (type_identifier))))))
+    (quest_typ
+      (quest_typ
+        (path_typ
+          (typ_path
+            (type_identifier)))))))
 
 ==================
 Pre

@@ -127,6 +127,7 @@ let w = ??opt;
   (let_dec
     (var_pat
       (identifier))
-    (double_quest_exp
-      (var_exp
-        (identifier)))))
+    (quest_exp
+      (quest_exp
+        (var_exp
+          (identifier))))))

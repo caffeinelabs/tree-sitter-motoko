@@ -39,10 +39,6 @@
           "named": true
         },
         {
-          "type": "double_quest_pat",
-          "named": true
-        },
-        {
           "type": "lit_pat",
           "named": true
         },
@@ -98,10 +94,6 @@
           "named": true
         },
         {
-          "type": "double_quest_pat",
-          "named": true
-        },
-        {
           "type": "lit_pat",
           "named": true
         },
@@ -154,10 +146,6 @@
         },
         {
           "type": "async_typ",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -249,14 +237,6 @@
         },
         {
           "type": "dot_exp_block",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -407,14 +387,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "from_candid_exp",
           "named": true
         },
@@ -531,10 +503,6 @@
         },
         {
           "type": "annot_pat",
-          "named": true
-        },
-        {
-          "type": "double_quest_pat",
           "named": true
         },
         {
@@ -674,10 +642,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -936,10 +900,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -1187,10 +1147,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -1350,10 +1306,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "func_typ",
           "named": true
         },
@@ -1494,10 +1446,6 @@
         },
         {
           "type": "dot_exp_block",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -1760,10 +1708,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -2011,10 +1955,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -2258,10 +2198,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -2417,10 +2353,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "obj_typ",
           "named": true
         },
@@ -2553,10 +2485,6 @@
         },
         {
           "type": "dot_exp_block",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -2799,10 +2727,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -3039,10 +2963,6 @@
         },
         {
           "type": "dot_exp_block",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -3347,10 +3267,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "from_candid_exp",
             "named": true
           },
@@ -3450,10 +3366,6 @@
           },
           {
             "type": "dot_exp_object",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -3583,10 +3495,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "from_candid_exp",
             "named": true
           },
@@ -3690,10 +3598,6 @@
           },
           {
             "type": "dot_exp_object",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -3909,10 +3813,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -4164,10 +4064,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -4671,10 +4567,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "for_exp",
             "named": true
           },
@@ -4938,10 +4830,6 @@
           },
           {
             "type": "dot_exp_block",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -5285,10 +5173,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "for_exp",
             "named": true
           },
@@ -5463,10 +5347,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "from_candid_exp",
             "named": true
           },
@@ -5632,10 +5512,6 @@
           },
           {
             "type": "dot_exp_block",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -5810,10 +5686,6 @@
           },
           {
             "type": "dot_exp_object",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -6010,10 +5882,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -6182,10 +6050,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -6467,199 +6331,6 @@
     }
   },
   {
-    "type": "double_quest_exp",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "actor_exp",
-          "named": true
-        },
-        {
-          "type": "array_exp",
-          "named": true
-        },
-        {
-          "type": "array_idx_exp_object",
-          "named": true
-        },
-        {
-          "type": "bang_exp_object",
-          "named": true
-        },
-        {
-          "type": "call_exp_object",
-          "named": true
-        },
-        {
-          "type": "debug_show_exp",
-          "named": true
-        },
-        {
-          "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
-          "type": "from_candid_exp",
-          "named": true
-        },
-        {
-          "type": "hash_exp",
-          "named": true
-        },
-        {
-          "type": "lit_exp",
-          "named": true
-        },
-        {
-          "type": "not_exp",
-          "named": true
-        },
-        {
-          "type": "object_exp",
-          "named": true
-        },
-        {
-          "type": "par_exp",
-          "named": true
-        },
-        {
-          "type": "parenthetical_exp",
-          "named": true
-        },
-        {
-          "type": "prim_exp",
-          "named": true
-        },
-        {
-          "type": "proj_exp_object",
-          "named": true
-        },
-        {
-          "type": "quest_exp",
-          "named": true
-        },
-        {
-          "type": "system_exp_object",
-          "named": true
-        },
-        {
-          "type": "to_candid_exp",
-          "named": true
-        },
-        {
-          "type": "unassign_exp",
-          "named": true
-        },
-        {
-          "type": "unop_exp",
-          "named": true
-        },
-        {
-          "type": "var_exp",
-          "named": true
-        },
-        {
-          "type": "wild_exp",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "double_quest_pat",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "double_quest_pat",
-          "named": true
-        },
-        {
-          "type": "lit_pat",
-          "named": true
-        },
-        {
-          "type": "obj_pat",
-          "named": true
-        },
-        {
-          "type": "quest_pat",
-          "named": true
-        },
-        {
-          "type": "tag_pat",
-          "named": true
-        },
-        {
-          "type": "tup_pat",
-          "named": true
-        },
-        {
-          "type": "var_pat",
-          "named": true
-        },
-        {
-          "type": "wild_pat",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "double_quest_typ",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "array_typ",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
-          "type": "obj_typ",
-          "named": true
-        },
-        {
-          "type": "path_typ",
-          "named": true
-        },
-        {
-          "type": "quest_typ",
-          "named": true
-        },
-        {
-          "type": "tup_typ",
-          "named": true
-        },
-        {
-          "type": "variant_typ",
-          "named": true
-        },
-        {
-          "type": "weak_typ",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "exp_dec",
     "named": true,
     "fields": {},
@@ -6753,10 +6424,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -6968,10 +6635,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -7226,10 +6889,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -7469,10 +7128,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "for_exp",
             "named": true
           },
@@ -7703,10 +7358,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "for_exp",
             "named": true
           },
@@ -7862,10 +7513,6 @@
           "named": true
         },
         {
-          "type": "double_quest_pat",
-          "named": true
-        },
-        {
           "type": "lit_pat",
           "named": true
         },
@@ -7934,10 +7581,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -8113,10 +7756,6 @@
           },
           {
             "type": "dot_exp_object",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -8442,10 +8081,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "for_exp",
             "named": true
           },
@@ -8670,10 +8305,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "func_typ",
           "named": true
         },
@@ -8734,10 +8365,6 @@
         },
         {
           "type": "async_typ",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -8950,10 +8577,6 @@
           },
           {
             "type": "dot_exp_block",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -9188,10 +8811,6 @@
           },
           {
             "type": "dot_exp_block",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {
@@ -9432,10 +9051,6 @@
         },
         {
           "type": "dot_exp_block",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -9709,10 +9324,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -9876,10 +9487,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "func_typ",
           "named": true
         },
@@ -10031,10 +9638,6 @@
         },
         {
           "type": "dot_exp_block",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -10286,14 +9889,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
-          "type": "double_quest_pat",
           "named": true
         },
         {
@@ -10617,14 +10212,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
-          "type": "double_quest_pat",
           "named": true
         },
         {
@@ -10989,10 +10576,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "for_exp",
             "named": true
           },
@@ -11227,10 +10810,6 @@
             "named": true
           },
           {
-            "type": "double_quest_exp",
-            "named": true
-          },
-          {
             "type": "for_exp",
             "named": true
           },
@@ -11431,10 +11010,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -11676,10 +11251,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "func_typ",
           "named": true
         },
@@ -11816,10 +11387,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -12068,10 +11635,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "func_typ",
           "named": true
         },
@@ -12311,10 +11874,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "from_candid_exp",
           "named": true
         },
@@ -12390,10 +11949,6 @@
       "required": true,
       "types": [
         {
-          "type": "double_quest_pat",
-          "named": true
-        },
-        {
           "type": "lit_pat",
           "named": true
         },
@@ -12434,10 +11989,6 @@
       "types": [
         {
           "type": "array_typ",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -12570,10 +12121,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -13102,10 +12649,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "for_exp",
           "named": true
         },
@@ -13338,10 +12881,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -13592,10 +13131,6 @@
           "named": true
         },
         {
-          "type": "double_quest_exp",
-          "named": true
-        },
-        {
           "type": "finally",
           "named": true
         },
@@ -13755,10 +13290,6 @@
           "named": true
         },
         {
-          "type": "double_quest_pat",
-          "named": true
-        },
-        {
           "type": "lit_pat",
           "named": true
         },
@@ -13826,10 +13357,6 @@
         },
         {
           "type": "async_typ",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -13906,10 +13433,6 @@
             "named": true
           },
           {
-            "type": "double_quest_typ",
-            "named": true
-          },
-          {
             "type": "func_typ",
             "named": true
           },
@@ -13978,10 +13501,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "func_typ",
           "named": true
         },
@@ -14046,10 +13565,6 @@
         },
         {
           "type": "async_typ",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -14184,10 +13699,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "func_typ",
           "named": true
         },
@@ -14268,10 +13779,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -14389,10 +13896,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -14530,10 +14033,6 @@
           "named": true
         },
         {
-          "type": "double_quest_pat",
-          "named": true
-        },
-        {
           "type": "identifier",
           "named": true
         },
@@ -14594,10 +14093,6 @@
         },
         {
           "type": "async_typ",
-          "named": true
-        },
-        {
-          "type": "double_quest_typ",
           "named": true
         },
         {
@@ -14741,10 +14236,6 @@
         },
         {
           "type": "dot_exp_object",
-          "named": true
-        },
-        {
-          "type": "double_quest_exp",
           "named": true
         },
         {
@@ -14952,10 +14443,6 @@
           "named": true
         },
         {
-          "type": "double_quest_typ",
-          "named": true
-        },
-        {
           "type": "obj_typ",
           "named": true
         },
@@ -15084,10 +14571,6 @@
           },
           {
             "type": "dot_exp_block",
-            "named": true
-          },
-          {
-            "type": "double_quest_exp",
             "named": true
           },
           {

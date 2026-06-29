@@ -137,18 +137,20 @@ let ??{ x = 10 } = 0;
     (lit_exp
       (int_literal)))
   (let_dec
-    (double_quest_pat
-      (var_pat
-        (identifier)))
+    (quest_pat
+      (quest_pat
+        (var_pat
+          (identifier))))
     (lit_exp
       (int_literal)))
   (let_dec
-    (double_quest_pat
-      (obj_pat
-        (val_pat_field
-          (identifier)
-          (lit_pat
-            (int_literal)))))
+    (quest_pat
+      (quest_pat
+        (obj_pat
+          (val_pat_field
+            (identifier)
+            (lit_pat
+              (int_literal))))))
     (lit_exp
       (int_literal))))
 

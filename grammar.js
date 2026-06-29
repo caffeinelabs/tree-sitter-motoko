@@ -168,7 +168,6 @@ function mk_exp_unary($, b) {
     $.parenthetical_exp,
     $.hash_exp,
     $.quest_exp,
-    $.double_quest_exp,
     $.unop_exp,
     $.unassign_exp,
     $.actor_exp,
@@ -631,7 +630,6 @@ export default grammar({
       optional($._exp_nullary_object),
     ),
     quest_exp: $ => seq("?", $._exp_unary_object),
-    double_quest_exp: $ => seq("??", $._exp_unary_object),
     unop_exp: $ => seq(
       $.unop,
       $._exp_unary_object,
@@ -857,7 +855,6 @@ export default grammar({
     _typ_un: $ => choice(
       $._typ_nullary,
       $.quest_typ,
-      $.double_quest_typ,
       $.weak_typ,
     ),
     _typ_pre: $ => choice(
@@ -915,7 +912,6 @@ export default grammar({
       ),
     ),
     quest_typ: $ => seq("?", $._typ_un),
-    double_quest_typ: $ => seq("??", $._typ_un),
     weak_typ: $ => seq("weak", $._typ_un),
     prim_typ: $ => seq("prim", $.text_literal),
     async_typ: $ => seq(
@@ -999,7 +995,6 @@ export default grammar({
       $._pat_nullary,
       $.tag_pat,
       $.quest_pat,
-      $.double_quest_pat,
     ),
     _pat_bin: $ => choice(
       $._pat_un,
@@ -1028,10 +1023,6 @@ export default grammar({
     ),
     quest_pat: $ => seq(
       "?",
-      $._pat_un,
-    ),
-    double_quest_pat: $ => seq(
-      "??",
       $._pat_un,
     ),
     alt_pat: $ => prec.left(2, seq(

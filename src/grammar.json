@@ -1779,10 +1779,6 @@
         },
         {
           "type": "SYMBOL",
-          "name": "double_quest_exp"
-        },
-        {
-          "type": "SYMBOL",
           "name": "unop_exp"
         },
         {
@@ -1829,10 +1825,6 @@
         {
           "type": "SYMBOL",
           "name": "quest_exp"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "double_quest_exp"
         },
         {
           "type": "SYMBOL",
@@ -2343,19 +2335,6 @@
         {
           "type": "STRING",
           "value": "?"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_exp_unary_object"
-        }
-      ]
-    },
-    "double_quest_exp": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "??"
         },
         {
           "type": "SYMBOL",
@@ -3822,10 +3801,6 @@
         },
         {
           "type": "SYMBOL",
-          "name": "double_quest_typ"
-        },
-        {
-          "type": "SYMBOL",
           "name": "weak_typ"
         }
       ]
@@ -4188,19 +4163,6 @@
         {
           "type": "STRING",
           "value": "?"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_typ_un"
-        }
-      ]
-    },
-    "double_quest_typ": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "??"
         },
         {
           "type": "SYMBOL",
@@ -4658,10 +4620,6 @@
         {
           "type": "SYMBOL",
           "name": "quest_pat"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "double_quest_pat"
         }
       ]
     },
@@ -4821,19 +4779,6 @@
         {
           "type": "STRING",
           "value": "?"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_pat_un"
-        }
-      ]
-    },
-    "double_quest_pat": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "??"
         },
         {
           "type": "SYMBOL",
