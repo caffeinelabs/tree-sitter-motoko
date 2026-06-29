@@ -91,6 +91,10 @@ function binassign_exp($, b) {
   return $[`binassign_exp_${b}`]
 }
 
+function coalesce_exp($, b) {
+  return $[`coalesce_exp_${b}`]
+}
+
 // NOTE(id: object-vs-block-expression): Conditionally allows parsing
 // object literals
 function mk_exp_nullary($, b) {
@@ -118,6 +122,7 @@ function mk_exp_non_dec($, b) {
     _exp_bin($, b),
     assign_exp($, b),
     binassign_exp($, b),
+    coalesce_exp($, b),
     $.return_exp,
     $.async_exp,
     $.asyncstar_exp,
@@ -163,6 +168,7 @@ function mk_exp_unary($, b) {
     $.parenthetical_exp,
     $.hash_exp,
     $.quest_exp,
+    $.double_quest_exp,
     $.unop_exp,
     $.unassign_exp,
     $.actor_exp,
@@ -267,6 +273,14 @@ function mk_binassign_exp($, b) {
     $.binassign_op,
     $._exp_object,
   )
+}
+
+function mk_coalesce_exp($, b) {
+  return prec.right(seq(
+    field("value", _exp_bin($, b)),
+    "??",
+    field("default", $._exp_nest),
+  ))
 }
 
 module.exports = grammar({
@@ -617,6 +631,7 @@ module.exports = grammar({
       optional($._exp_nullary_object),
     ),
     quest_exp: $ => seq("?", $._exp_unary_object),
+    double_quest_exp: $ => seq("??", $._exp_unary_object),
     unop_exp: $ => seq(
       $.unop,
       $._exp_unary_object,
@@ -785,6 +800,9 @@ module.exports = grammar({
 
     binassign_exp_block: $ => mk_binassign_exp($, "block"),
     binassign_exp_object: $ => mk_binassign_exp($, "object"),
+
+    coalesce_exp_block: $ => mk_coalesce_exp($, "block"),
+    coalesce_exp_object: $ => mk_coalesce_exp($, "object"),
 
     case: $ => seq(
       "case",
@@ -979,6 +997,7 @@ module.exports = grammar({
       $._pat_nullary,
       $.tag_pat,
       $.quest_pat,
+      $.double_quest_pat,
     ),
     _pat_bin: $ => choice(
       $._pat_un,
@@ -1007,6 +1026,10 @@ module.exports = grammar({
     ),
     quest_pat: $ => seq(
       "?",
+      $._pat_un,
+    ),
+    double_quest_pat: $ => seq(
+      "??",
       $._pat_un,
     ),
     alt_pat: $ => prec.left(2, seq(
