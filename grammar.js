@@ -269,7 +269,7 @@ function mk_binassign_exp($, b) {
   )
 }
 
-module.exports = grammar({
+export default grammar({
   name: "motoko",
   extras: $ => [/\s+/, $.doc_comment, $.line_comment, $.block_comment],
   word: $ => $.identifier,
