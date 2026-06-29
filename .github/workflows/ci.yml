@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: ["main"]
   pull_request:
 
 defaults:
@@ -9,6 +10,24 @@ defaults:
     shell: bash
 
 jobs:
+  bindings-in-sync:
+    name: Bindings in sync with tree-sitter.json
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          cache: npm
+          node-version: "22"
+      - run: npm i --omit peer --omit optional
+      - run: npx tree-sitter init --update
+      - name: Check for drift
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Bindings are out of sync with tree-sitter.json. Run 'tree-sitter init --update' locally and commit the result."
+            exit 1
+          fi
+
   test:
     name: Test grammar against compiler corpus
     runs-on: ubuntu-24.04
