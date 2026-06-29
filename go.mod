@@ -1,4 +1,4 @@
-module github.com/tree-sitter/tree-sitter-motoko
+module github.com/caffeinelabs/tree-sitter-motoko
 
 go 1.22
 
