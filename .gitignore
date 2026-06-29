@@ -46,3 +46,4 @@ zig-out/
 *.tar.gz
 *.tgz
 *.zip
+test/corpus/generated/

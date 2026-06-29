@@ -88,6 +88,8 @@ let #x { x = 10 } = 0;
 let ?{ x = 10} = 0;
 let ?x = 0;
 let ?(x or y) = 0;
+let ??x = 0;
+let ??{ x = 10 } = 0;
 
 ---
 
@@ -132,6 +134,23 @@ let ?(x or y) = 0;
             (identifier))
           (var_pat
             (identifier)))))
+    (lit_exp
+      (int_literal)))
+  (let_dec
+    (quest_pat
+      (quest_pat
+        (var_pat
+          (identifier))))
+    (lit_exp
+      (int_literal)))
+  (let_dec
+    (quest_pat
+      (quest_pat
+        (obj_pat
+          (val_pat_field
+            (identifier)
+            (lit_pat
+              (int_literal))))))
     (lit_exp
       (int_literal))))
 

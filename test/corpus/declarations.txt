@@ -78,3 +78,56 @@ var x : Nat = 10;
           (type_identifier))))
     (lit_exp
       (int_literal))))
+
+==================
+Null coalescing
+==================
+
+let x = opt ?? 0;
+let y = a ?? b ?? c;
+let z = opt ?? { 1 + 2 };
+let w = ??opt;
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      value: (var_exp
+        (identifier))
+      default: (lit_exp
+        (int_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      value: (var_exp
+        (identifier))
+      default: (coalesce_exp_block
+        value: (var_exp
+          (identifier))
+        default: (var_exp
+          (identifier)))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      value: (var_exp
+        (identifier))
+      default: (block_exp
+        (exp_dec
+          (bin_exp_object
+            left: (lit_exp
+              (int_literal))
+            (bin_op)
+            right: (lit_exp
+              (int_literal)))))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (quest_exp
+      (quest_exp
+        (var_exp
+          (identifier))))))

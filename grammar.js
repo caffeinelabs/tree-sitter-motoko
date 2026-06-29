@@ -91,6 +91,10 @@ function binassign_exp($, b) {
   return $[`binassign_exp_${b}`]
 }
 
+function coalesce_exp($, b) {
+  return $[`coalesce_exp_${b}`]
+}
+
 // NOTE(id: object-vs-block-expression): Conditionally allows parsing
 // object literals
 function mk_exp_nullary($, b) {
@@ -118,6 +122,7 @@ function mk_exp_non_dec($, b) {
     _exp_bin($, b),
     assign_exp($, b),
     binassign_exp($, b),
+    coalesce_exp($, b),
     $.return_exp,
     $.async_exp,
     $.asyncstar_exp,
@@ -267,6 +272,14 @@ function mk_binassign_exp($, b) {
     $.binassign_op,
     $._exp_object,
   )
+}
+
+function mk_coalesce_exp($, b) {
+  return prec.right(seq(
+    field("value", _exp_bin($, b)),
+    "??",
+    field("default", $._exp_nest),
+  ))
 }
 
 export default grammar({
@@ -785,6 +798,9 @@ export default grammar({
 
     binassign_exp_block: $ => mk_binassign_exp($, "block"),
     binassign_exp_object: $ => mk_binassign_exp($, "object"),
+
+    coalesce_exp_block: $ => mk_coalesce_exp($, "block"),
+    coalesce_exp_object: $ => mk_coalesce_exp($, "object"),
 
     case: $ => seq(
       "case",
