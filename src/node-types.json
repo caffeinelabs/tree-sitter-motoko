@@ -31,6 +31,65 @@
           "named": true
         },
         {
+          "type": "and_pat",
+          "named": true
+        },
+        {
+          "type": "annot_pat",
+          "named": true
+        },
+        {
+          "type": "lit_pat",
+          "named": true
+        },
+        {
+          "type": "obj_pat",
+          "named": true
+        },
+        {
+          "type": "quest_pat",
+          "named": true
+        },
+        {
+          "type": "tag_pat",
+          "named": true
+        },
+        {
+          "type": "tup_pat",
+          "named": true
+        },
+        {
+          "type": "unop_pat",
+          "named": true
+        },
+        {
+          "type": "var_pat",
+          "named": true
+        },
+        {
+          "type": "wild_pat",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "and_pat",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "alt_pat",
+          "named": true
+        },
+        {
+          "type": "and_pat",
+          "named": true
+        },
+        {
           "type": "annot_pat",
           "named": true
         },
@@ -436,6 +495,10 @@
       "types": [
         {
           "type": "alt_pat",
+          "named": true
+        },
+        {
+          "type": "and_pat",
           "named": true
         },
         {
@@ -6674,6 +6737,10 @@
           "named": true
         },
         {
+          "type": "and_pat",
+          "named": true
+        },
+        {
           "type": "annot_pat",
           "named": true
         },
@@ -8933,6 +9000,10 @@
           "named": true
         },
         {
+          "type": "and_pat",
+          "named": true
+        },
+        {
           "type": "annot_exp_object",
           "named": true
         },
@@ -9205,6 +9276,10 @@
         },
         {
           "type": "alt_pat",
+          "named": true
+        },
+        {
+          "type": "and_pat",
           "named": true
         },
         {
@@ -12371,6 +12446,10 @@
           "named": true
         },
         {
+          "type": "and_pat",
+          "named": true
+        },
+        {
           "type": "annot_pat",
           "named": true
         },
@@ -13107,6 +13186,10 @@
       "types": [
         {
           "type": "alt_pat",
+          "named": true
+        },
+        {
+          "type": "and_pat",
           "named": true
         },
         {

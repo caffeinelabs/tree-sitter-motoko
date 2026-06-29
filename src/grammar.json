@@ -1144,6 +1144,31 @@
           "value": "mixin"
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "<"
+                },
+                {
+                  "type": "STRING",
+                  "value": "system"
+                },
+                {
+                  "type": "STRING",
+                  "value": ">"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "SYMBOL",
           "name": "_pat_plain"
         },
@@ -1163,6 +1188,31 @@
         {
           "type": "SYMBOL",
           "name": "identifier"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "<"
+                },
+                {
+                  "type": "STRING",
+                  "value": "system"
+                },
+                {
+                  "type": "STRING",
+                  "value": ">"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -4523,6 +4573,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "and_pat"
+        },
+        {
+          "type": "SYMBOL",
           "name": "annot_pat"
         },
         {
@@ -4682,6 +4736,27 @@
           {
             "type": "STRING",
             "value": "or"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_pat_bin"
+          }
+        ]
+      }
+    },
+    "and_pat": {
+      "type": "PREC_LEFT",
+      "value": 3,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_pat_bin"
+          },
+          {
+            "type": "STRING",
+            "value": "and"
           },
           {
             "type": "SYMBOL",

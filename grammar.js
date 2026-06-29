@@ -508,12 +508,14 @@ module.exports = grammar({
     ),
     mixin_dec: $ => seq(
       "mixin",
+      optional(seq("<", "system", ">")),
       $._pat_plain,
       $.obj_body,
     ),
     include_dec: $ => seq(
       "include",
       $.identifier,
+      optional(seq("<", "system", ">")),
       $._exp_object
     ),
     _obj_sort: $ => choice(
@@ -981,6 +983,7 @@ module.exports = grammar({
     _pat_bin: $ => choice(
       $._pat_un,
       $.alt_pat,
+      $.and_pat,
       $.annot_pat,
       $.unop_pat,
     ),
@@ -1009,6 +1012,11 @@ module.exports = grammar({
     alt_pat: $ => prec.left(2, seq(
       $._pat_bin,
       "or",
+      $._pat_bin,
+    )),
+    and_pat: $ => prec.left(3, seq(
+      $._pat_bin,
+      "and",
       $._pat_bin,
     )),
     annot_pat: $ => seq($._pat_bin, $.typ_annot),
