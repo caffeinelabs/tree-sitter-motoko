@@ -2,7 +2,11 @@
   "name": "tree-sitter-motoko",
   "version": "0.1.0",
   "description": "Motoko grammar for tree-sitter",
-  "repository": "https://github.com/caffeinelabs/tree-sitter-motoko",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caffeinelabs/tree-sitter-motoko.git"
+  },
   "license": "Apache-2.0",
   "author": {
     "name": "Christoph Hegemann",
@@ -27,15 +31,16 @@
     "*.wasm"
   ],
   "dependencies": {
-    "node-addon-api": "^8.6.0",
+    "node-addon-api": "^8.5.0",
     "node-gyp-build": "^4.8.4"
   },
   "devDependencies": {
     "prebuildify": "^6.0.1",
-    "tree-sitter-cli": "^0.26.6"
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-cli": "^0.26.10"
   },
   "peerDependencies": {
-    "tree-sitter": "^0.26"
+    "tree-sitter": "^0.25.0"
   },
   "peerDependenciesMeta": {
     "tree-sitter": {

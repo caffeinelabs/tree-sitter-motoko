@@ -172,11 +172,8 @@
           "value": "@"
         },
         {
-          "type": "IMMEDIATE_TOKEN",
-          "content": {
-            "type": "SYMBOL",
-            "name": "identifier"
-          }
+          "type": "SYMBOL",
+          "name": "identifier"
         }
       ]
     },

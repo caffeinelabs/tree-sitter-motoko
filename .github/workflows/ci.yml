@@ -13,12 +13,16 @@ jobs:
     name: Test grammar against compiler corpus
     runs-on: ubuntu-24.04
     steps:
+      # Checkout all three repos as siblings under $GITHUB_WORKSPACE so that
+      # ../motoko and ../motoko-core resolve correctly from tree-sitter-motoko/.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          path: tree-sitter-motoko
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: caffeinelabs/motoko
-          path: ../motoko
+          path: motoko
           fetch-depth: 1
           sparse-checkout: |
             test/fail
@@ -27,7 +31,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: caffeinelabs/motoko-core
-          path: ../motoko-core
+          path: motoko-core
           fetch-depth: 1
           sparse-checkout: |
             src
@@ -43,12 +47,15 @@ jobs:
 
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
         with:
-          workspaces: dev
+          workspaces: tree-sitter-motoko/dev
 
       - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
 
       - run: npm ci --omit peer --omit optional
+        working-directory: tree-sitter-motoko
 
       - run: just test-generate
+        working-directory: tree-sitter-motoko
 
       - run: just test
+        working-directory: tree-sitter-motoko
