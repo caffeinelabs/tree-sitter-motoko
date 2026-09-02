@@ -18,7 +18,6 @@ jobs:
     uses: tree-sitter/workflows/.github/workflows/release.yml@216133f5cb4469b112c5e83415869e58b25c353a # main @ 2026-05-15
     with:
       generate: true
-      attestations: true
 
   build-wasm:
     name: Build Wasm binaries
@@ -77,14 +76,17 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           cache: npm
-          node-version: "22"
+          # OIDC trusted publishing needs npm >= 11.5.1, bundled since node 24.5
+          node-version: "24"
           registry-url: https://registry.npmjs.org/
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: prebuilds
           pattern: prebuilds-*
           merge-multiple: true
+      - name: Check package version matches tag
+        run: test "v$(jq -r .version package.json)" = "$GITHUB_REF_NAME"
       - name: Move Wasm binaries to root
-        run: mv -v prebuilds/*.wasm . || true
+        run: mv -v prebuilds/*.wasm .
       - name: Publish
         run: npm publish --provenance --ignore-scripts
