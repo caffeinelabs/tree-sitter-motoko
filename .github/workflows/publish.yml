@@ -18,7 +18,6 @@ jobs:
     uses: tree-sitter/workflows/.github/workflows/release.yml@216133f5cb4469b112c5e83415869e58b25c353a # main @ 2026-05-15
     with:
       generate: true
-      attestations: true
 
   build-wasm:
     name: Build Wasm binaries
@@ -84,7 +83,12 @@ jobs:
           path: prebuilds
           pattern: prebuilds-*
           merge-multiple: true
+      - name: Check package version matches tag
+        run: test "v$(jq -r .version package.json)" = "$GITHUB_REF_NAME"
       - name: Move Wasm binaries to root
-        run: mv -v prebuilds/*.wasm . || true
+        run: mv -v prebuilds/*.wasm .
+      # OIDC trusted publishing requires npm >= 11.5.1; node 22 bundles npm 10
+      - name: Update npm for trusted publishing
+        run: npm install -g npm@11
       - name: Publish
         run: npm publish --provenance --ignore-scripts
