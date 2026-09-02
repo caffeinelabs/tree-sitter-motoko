@@ -1,0 +1,90 @@
+name: Publish packages
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  github:
+    uses: tree-sitter/workflows/.github/workflows/release.yml@216133f5cb4469b112c5e83415869e58b25c353a # main @ 2026-05-15
+    with:
+      generate: true
+      attestations: true
+
+  build-wasm:
+    name: Build Wasm binaries
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          cache: npm
+          node-version: "22"
+      - run: npm i --omit peer --omit optional
+      - run: npx tree-sitter generate
+      - run: npx tree-sitter build --wasm
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          path: "*.wasm"
+          name: prebuilds-wasm
+          retention-days: 2
+
+  build-node:
+    name: Build NodeJS binaries on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - windows-2025
+          - windows-11-arm
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15
+          - macos-15-intel
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          cache: npm
+          node-version: "22"
+      - run: npm i --omit peer --omit optional
+      - run: npx tree-sitter generate
+      - run: npx prebuildify -t 20.19.5
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          path: prebuilds/**
+          name: prebuilds-${{ matrix.os }}
+          retention-days: 2
+
+  npm:
+    name: Publish to npm (trusted publishing)
+    needs: [build-wasm, build-node]
+    runs-on: ubuntu-24.04
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/tree-sitter-motoko
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          cache: npm
+          node-version: "22"
+          registry-url: https://registry.npmjs.org/
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: prebuilds
+          pattern: prebuilds-*
+          merge-multiple: true
+      - name: Move Wasm binaries to root
+        run: mv -v prebuilds/*.wasm . || true
+      - name: Publish
+        run: npm publish --provenance --ignore-scripts

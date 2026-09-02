@@ -1,7 +1,7 @@
 [package]
 name = "tree-sitter-motoko"
 description = "Motoko grammar for tree-sitter"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Christoph Hegemann <christoph.hegemann@caffeine.ai>"]
 license = "Apache-2.0"
 readme = "README.md"

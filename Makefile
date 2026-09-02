@@ -1,6 +1,6 @@
 LANGUAGE_NAME := tree-sitter-motoko
 HOMEPAGE_URL := https://github.com/caffeinelabs/tree-sitter-motoko
-VERSION := 0.1.0
+VERSION := 0.1.1
 DESCRIPTION := Motoko grammar for tree-sitter
 
 # repository
