@@ -76,7 +76,8 @@ jobs:
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           cache: npm
-          node-version: "22"
+          # OIDC trusted publishing needs npm >= 11.5.1, bundled since node 24.5
+          node-version: "24"
           registry-url: https://registry.npmjs.org/
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -87,8 +88,5 @@ jobs:
         run: test "v$(jq -r .version package.json)" = "$GITHUB_REF_NAME"
       - name: Move Wasm binaries to root
         run: mv -v prebuilds/*.wasm .
-      # OIDC trusted publishing requires npm >= 11.5.1; node 22 bundles npm 10
-      - name: Update npm for trusted publishing
-        run: npm install -g npm@11
       - name: Publish
         run: npm publish --provenance --ignore-scripts
