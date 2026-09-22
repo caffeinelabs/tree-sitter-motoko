@@ -589,6 +589,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -829,6 +833,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -1088,6 +1096,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -1389,6 +1401,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -1633,6 +1649,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -1899,6 +1919,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -2135,6 +2159,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -2428,6 +2456,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -2667,6 +2699,253 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
+          "type": "awaitstar_exp",
+          "named": true
+        },
+        {
+          "type": "bang_exp_block",
+          "named": true
+        },
+        {
+          "type": "bin_exp_block",
+          "named": true
+        },
+        {
+          "type": "binassign_exp_block",
+          "named": true
+        },
+        {
+          "type": "block_exp",
+          "named": true
+        },
+        {
+          "type": "break_exp",
+          "named": true
+        },
+        {
+          "type": "call_exp_block",
+          "named": true
+        },
+        {
+          "type": "class_dec",
+          "named": true
+        },
+        {
+          "type": "coalesce_exp_block",
+          "named": true
+        },
+        {
+          "type": "continue_exp",
+          "named": true
+        },
+        {
+          "type": "debug_exp",
+          "named": true
+        },
+        {
+          "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_block",
+          "named": true
+        },
+        {
+          "type": "for_exp",
+          "named": true
+        },
+        {
+          "type": "from_candid_exp",
+          "named": true
+        },
+        {
+          "type": "func_dec",
+          "named": true
+        },
+        {
+          "type": "func_exp",
+          "named": true
+        },
+        {
+          "type": "hash_exp",
+          "named": true
+        },
+        {
+          "type": "if_exp",
+          "named": true
+        },
+        {
+          "type": "ignore_exp",
+          "named": true
+        },
+        {
+          "type": "include_dec",
+          "named": true
+        },
+        {
+          "type": "label_exp",
+          "named": true
+        },
+        {
+          "type": "let_dec",
+          "named": true
+        },
+        {
+          "type": "lit_exp",
+          "named": true
+        },
+        {
+          "type": "loop_exp",
+          "named": true
+        },
+        {
+          "type": "mixin_dec",
+          "named": true
+        },
+        {
+          "type": "not_exp",
+          "named": true
+        },
+        {
+          "type": "obj_dec",
+          "named": true
+        },
+        {
+          "type": "par_exp",
+          "named": true
+        },
+        {
+          "type": "parenthetical_exp",
+          "named": true
+        },
+        {
+          "type": "prim_exp",
+          "named": true
+        },
+        {
+          "type": "proj_exp_block",
+          "named": true
+        },
+        {
+          "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "return_exp",
+          "named": true
+        },
+        {
+          "type": "switch_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_block",
+          "named": true
+        },
+        {
+          "type": "throw_exp",
+          "named": true
+        },
+        {
+          "type": "to_candid_exp",
+          "named": true
+        },
+        {
+          "type": "try_exp",
+          "named": true
+        },
+        {
+          "type": "typ_dec",
+          "named": true
+        },
+        {
+          "type": "unassign_exp",
+          "named": true
+        },
+        {
+          "type": "unop_exp",
+          "named": true
+        },
+        {
+          "type": "var_dec",
+          "named": true
+        },
+        {
+          "type": "var_exp",
+          "named": true
+        },
+        {
+          "type": "while_exp",
+          "named": true
+        },
+        {
+          "type": "wild_exp",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "awaitquest_exp",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "actor_exp",
+          "named": true
+        },
+        {
+          "type": "annot_exp_block",
+          "named": true
+        },
+        {
+          "type": "array_exp",
+          "named": true
+        },
+        {
+          "type": "array_idx_exp_block",
+          "named": true
+        },
+        {
+          "type": "assert_exp",
+          "named": true
+        },
+        {
+          "type": "assign_exp_block",
+          "named": true
+        },
+        {
+          "type": "async_exp",
+          "named": true
+        },
+        {
+          "type": "asyncstar_exp",
+          "named": true
+        },
+        {
+          "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -2903,6 +3182,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -3337,6 +3620,10 @@
             "named": true
           },
           {
+            "type": "annot_exp_block",
+            "named": true
+          },
+          {
             "type": "annot_exp_object",
             "named": true
           },
@@ -3345,7 +3632,15 @@
             "named": true
           },
           {
+            "type": "array_idx_exp_block",
+            "named": true
+          },
+          {
             "type": "array_idx_exp_object",
+            "named": true
+          },
+          {
+            "type": "bang_exp_block",
             "named": true
           },
           {
@@ -3353,7 +3648,15 @@
             "named": true
           },
           {
+            "type": "bin_exp_block",
+            "named": true
+          },
+          {
             "type": "bin_exp_object",
+            "named": true
+          },
+          {
+            "type": "call_exp_block",
             "named": true
           },
           {
@@ -3362,6 +3665,10 @@
           },
           {
             "type": "debug_show_exp",
+            "named": true
+          },
+          {
+            "type": "dot_exp_block",
             "named": true
           },
           {
@@ -3401,11 +3708,19 @@
             "named": true
           },
           {
+            "type": "proj_exp_block",
+            "named": true
+          },
+          {
             "type": "proj_exp_object",
             "named": true
           },
           {
             "type": "quest_exp",
+            "named": true
+          },
+          {
+            "type": "system_exp_block",
             "named": true
           },
           {
@@ -3740,6 +4055,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -4004,6 +4323,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -4302,7 +4625,159 @@
       "required": false,
       "types": [
         {
+          "type": "actor_exp",
+          "named": true
+        },
+        {
+          "type": "annot_exp_object",
+          "named": true
+        },
+        {
+          "type": "array_exp",
+          "named": true
+        },
+        {
+          "type": "array_idx_exp_object",
+          "named": true
+        },
+        {
+          "type": "assert_exp",
+          "named": true
+        },
+        {
+          "type": "assign_exp_object",
+          "named": true
+        },
+        {
+          "type": "async_exp",
+          "named": true
+        },
+        {
+          "type": "asyncstar_exp",
+          "named": true
+        },
+        {
+          "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
+          "type": "awaitstar_exp",
+          "named": true
+        },
+        {
+          "type": "bang_exp_object",
+          "named": true
+        },
+        {
+          "type": "bin_exp_object",
+          "named": true
+        },
+        {
+          "type": "binassign_exp_object",
+          "named": true
+        },
+        {
+          "type": "break_exp",
+          "named": true
+        },
+        {
+          "type": "call_exp_object",
+          "named": true
+        },
+        {
+          "type": "class_dec",
+          "named": true
+        },
+        {
+          "type": "coalesce_exp_object",
+          "named": true
+        },
+        {
+          "type": "continue_exp",
+          "named": true
+        },
+        {
+          "type": "debug_exp",
+          "named": true
+        },
+        {
+          "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_object",
+          "named": true
+        },
+        {
+          "type": "for_exp",
+          "named": true
+        },
+        {
+          "type": "from_candid_exp",
+          "named": true
+        },
+        {
+          "type": "func_dec",
+          "named": true
+        },
+        {
+          "type": "func_exp",
+          "named": true
+        },
+        {
+          "type": "hash_exp",
+          "named": true
+        },
+        {
+          "type": "if_exp",
+          "named": true
+        },
+        {
+          "type": "ignore_exp",
+          "named": true
+        },
+        {
+          "type": "include_dec",
+          "named": true
+        },
+        {
+          "type": "label_exp",
+          "named": true
+        },
+        {
+          "type": "let_dec",
+          "named": true
+        },
+        {
           "type": "lit_exp",
+          "named": true
+        },
+        {
+          "type": "loop_exp",
+          "named": true
+        },
+        {
+          "type": "mixin_dec",
+          "named": true
+        },
+        {
+          "type": "not_exp",
+          "named": true
+        },
+        {
+          "type": "obj_dec",
           "named": true
         },
         {
@@ -4314,11 +4789,67 @@
           "named": true
         },
         {
+          "type": "parenthetical_exp",
+          "named": true
+        },
+        {
           "type": "prim_exp",
           "named": true
         },
         {
+          "type": "proj_exp_object",
+          "named": true
+        },
+        {
+          "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "return_exp",
+          "named": true
+        },
+        {
+          "type": "switch_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_object",
+          "named": true
+        },
+        {
+          "type": "throw_exp",
+          "named": true
+        },
+        {
+          "type": "to_candid_exp",
+          "named": true
+        },
+        {
+          "type": "try_exp",
+          "named": true
+        },
+        {
+          "type": "typ_dec",
+          "named": true
+        },
+        {
+          "type": "unassign_exp",
+          "named": true
+        },
+        {
+          "type": "unop_exp",
+          "named": true
+        },
+        {
+          "type": "var_dec",
+          "named": true
+        },
+        {
           "type": "var_exp",
+          "named": true
+        },
+        {
+          "type": "while_exp",
           "named": true
         },
         {
@@ -4504,6 +5035,10 @@
           },
           {
             "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
             "named": true
           },
           {
@@ -4713,7 +5248,19 @@
             "named": true
           },
           {
+            "type": "quest_pat",
+            "named": true
+          },
+          {
+            "type": "tag_pat",
+            "named": true
+          },
+          {
             "type": "tup_pat",
+            "named": true
+          },
+          {
+            "type": "unop_pat",
             "named": true
           },
           {
@@ -4770,6 +5317,10 @@
           },
           {
             "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
             "named": true
           },
           {
@@ -5085,6 +5636,10 @@
             "named": true
           },
           {
+            "type": "annot_exp_object",
+            "named": true
+          },
+          {
             "type": "array_exp",
             "named": true
           },
@@ -5093,11 +5648,15 @@
             "named": true
           },
           {
+            "type": "array_idx_exp_object",
+            "named": true
+          },
+          {
             "type": "assert_exp",
             "named": true
           },
           {
-            "type": "assign_exp_block",
+            "type": "assign_exp_object",
             "named": true
           },
           {
@@ -5113,6 +5672,10 @@
             "named": true
           },
           {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
             "type": "awaitstar_exp",
             "named": true
           },
@@ -5121,15 +5684,19 @@
             "named": true
           },
           {
+            "type": "bang_exp_object",
+            "named": true
+          },
+          {
             "type": "bin_exp_block",
             "named": true
           },
           {
-            "type": "binassign_exp_block",
+            "type": "bin_exp_object",
             "named": true
           },
           {
-            "type": "block_exp",
+            "type": "binassign_exp_object",
             "named": true
           },
           {
@@ -5141,11 +5708,19 @@
             "named": true
           },
           {
+            "type": "call_exp_object",
+            "named": true
+          },
+          {
             "type": "class_dec",
             "named": true
           },
           {
             "type": "coalesce_exp_block",
+            "named": true
+          },
+          {
+            "type": "coalesce_exp_object",
             "named": true
           },
           {
@@ -5170,6 +5745,10 @@
           },
           {
             "type": "dot_exp_block",
+            "named": true
+          },
+          {
+            "type": "dot_exp_object",
             "named": true
           },
           {
@@ -5233,6 +5812,10 @@
             "named": true
           },
           {
+            "type": "object_exp",
+            "named": true
+          },
+          {
             "type": "par_exp",
             "named": true
           },
@@ -5249,6 +5832,10 @@
             "named": true
           },
           {
+            "type": "proj_exp_object",
+            "named": true
+          },
+          {
             "type": "quest_exp",
             "named": true
           },
@@ -5262,6 +5849,10 @@
           },
           {
             "type": "system_exp_block",
+            "named": true
+          },
+          {
+            "type": "system_exp_object",
             "named": true
           },
           {
@@ -5423,7 +6014,7 @@
             "named": true
           },
           {
-            "type": "annot_exp_block",
+            "type": "annot_exp_object",
             "named": true
           },
           {
@@ -5431,7 +6022,7 @@
             "named": true
           },
           {
-            "type": "array_idx_exp_block",
+            "type": "array_idx_exp_object",
             "named": true
           },
           {
@@ -5439,7 +6030,7 @@
             "named": true
           },
           {
-            "type": "assign_exp_block",
+            "type": "assign_exp_object",
             "named": true
           },
           {
@@ -5455,23 +6046,23 @@
             "named": true
           },
           {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
             "type": "awaitstar_exp",
             "named": true
           },
           {
-            "type": "bang_exp_block",
+            "type": "bang_exp_object",
             "named": true
           },
           {
-            "type": "bin_exp_block",
+            "type": "bin_exp_object",
             "named": true
           },
           {
-            "type": "binassign_exp_block",
-            "named": true
-          },
-          {
-            "type": "block_exp",
+            "type": "binassign_exp_object",
             "named": true
           },
           {
@@ -5479,7 +6070,7 @@
             "named": true
           },
           {
-            "type": "call_exp_block",
+            "type": "call_exp_object",
             "named": true
           },
           {
@@ -5487,7 +6078,7 @@
             "named": true
           },
           {
-            "type": "coalesce_exp_block",
+            "type": "coalesce_exp_object",
             "named": true
           },
           {
@@ -5511,7 +6102,7 @@
             "named": true
           },
           {
-            "type": "dot_exp_block",
+            "type": "dot_exp_object",
             "named": true
           },
           {
@@ -5575,6 +6166,10 @@
             "named": true
           },
           {
+            "type": "object_exp",
+            "named": true
+          },
+          {
             "type": "par_exp",
             "named": true
           },
@@ -5587,7 +6182,7 @@
             "named": true
           },
           {
-            "type": "proj_exp_block",
+            "type": "proj_exp_object",
             "named": true
           },
           {
@@ -5603,7 +6198,7 @@
             "named": true
           },
           {
-            "type": "system_exp_block",
+            "type": "system_exp_object",
             "named": true
           },
           {
@@ -5822,6 +6417,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -6033,11 +6632,23 @@
           "named": true
         },
         {
+          "type": "array_idx_exp_block",
+          "named": true
+        },
+        {
           "type": "array_idx_exp_object",
           "named": true
         },
         {
+          "type": "bang_exp_block",
+          "named": true
+        },
+        {
           "type": "bang_exp_object",
+          "named": true
+        },
+        {
+          "type": "call_exp_block",
           "named": true
         },
         {
@@ -6046,6 +6657,10 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_block",
           "named": true
         },
         {
@@ -6085,11 +6700,19 @@
           "named": true
         },
         {
+          "type": "proj_exp_block",
+          "named": true
+        },
+        {
           "type": "proj_exp_object",
           "named": true
         },
         {
           "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_block",
           "named": true
         },
         {
@@ -6375,6 +6998,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -6579,6 +7206,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -6829,6 +7460,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -7068,6 +7703,10 @@
             "named": true
           },
           {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
             "type": "awaitstar_exp",
             "named": true
           },
@@ -7270,11 +7909,19 @@
             "named": true
           },
           {
+            "type": "annot_exp_block",
+            "named": true
+          },
+          {
             "type": "annot_exp_object",
             "named": true
           },
           {
             "type": "array_exp",
+            "named": true
+          },
+          {
+            "type": "array_idx_exp_block",
             "named": true
           },
           {
@@ -7302,11 +7949,23 @@
             "named": true
           },
           {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
             "type": "awaitstar_exp",
             "named": true
           },
           {
+            "type": "bang_exp_block",
+            "named": true
+          },
+          {
             "type": "bang_exp_object",
+            "named": true
+          },
+          {
+            "type": "bin_exp_block",
             "named": true
           },
           {
@@ -7322,11 +7981,19 @@
             "named": true
           },
           {
+            "type": "call_exp_block",
+            "named": true
+          },
+          {
             "type": "call_exp_object",
             "named": true
           },
           {
             "type": "class_dec",
+            "named": true
+          },
+          {
+            "type": "coalesce_exp_block",
             "named": true
           },
           {
@@ -7351,6 +8018,10 @@
           },
           {
             "type": "do_quest_exp",
+            "named": true
+          },
+          {
+            "type": "dot_exp_block",
             "named": true
           },
           {
@@ -7434,6 +8105,10 @@
             "named": true
           },
           {
+            "type": "proj_exp_block",
+            "named": true
+          },
+          {
             "type": "proj_exp_object",
             "named": true
           },
@@ -7447,6 +8122,10 @@
           },
           {
             "type": "switch_exp",
+            "named": true
+          },
+          {
+            "type": "system_exp_block",
             "named": true
           },
           {
@@ -7494,57 +8173,57 @@
             "named": true
           }
         ]
+      },
+      "pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "alt_pat",
+            "named": true
+          },
+          {
+            "type": "and_pat",
+            "named": true
+          },
+          {
+            "type": "annot_pat",
+            "named": true
+          },
+          {
+            "type": "lit_pat",
+            "named": true
+          },
+          {
+            "type": "obj_pat",
+            "named": true
+          },
+          {
+            "type": "quest_pat",
+            "named": true
+          },
+          {
+            "type": "tag_pat",
+            "named": true
+          },
+          {
+            "type": "tup_pat",
+            "named": true
+          },
+          {
+            "type": "unop_pat",
+            "named": true
+          },
+          {
+            "type": "var_pat",
+            "named": true
+          },
+          {
+            "type": "wild_pat",
+            "named": true
+          }
+        ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "alt_pat",
-          "named": true
-        },
-        {
-          "type": "and_pat",
-          "named": true
-        },
-        {
-          "type": "annot_pat",
-          "named": true
-        },
-        {
-          "type": "lit_pat",
-          "named": true
-        },
-        {
-          "type": "obj_pat",
-          "named": true
-        },
-        {
-          "type": "quest_pat",
-          "named": true
-        },
-        {
-          "type": "tag_pat",
-          "named": true
-        },
-        {
-          "type": "tup_pat",
-          "named": true
-        },
-        {
-          "type": "unop_pat",
-          "named": true
-        },
-        {
-          "type": "var_pat",
-          "named": true
-        },
-        {
-          "type": "wild_pat",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -7564,11 +8243,23 @@
           "named": true
         },
         {
+          "type": "array_idx_exp_block",
+          "named": true
+        },
+        {
           "type": "array_idx_exp_object",
           "named": true
         },
         {
+          "type": "bang_exp_block",
+          "named": true
+        },
+        {
           "type": "bang_exp_object",
+          "named": true
+        },
+        {
+          "type": "call_exp_block",
           "named": true
         },
         {
@@ -7577,6 +8268,10 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_block",
           "named": true
         },
         {
@@ -7616,11 +8311,19 @@
           "named": true
         },
         {
+          "type": "proj_exp_block",
+          "named": true
+        },
+        {
           "type": "proj_exp_object",
           "named": true
         },
         {
           "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_block",
           "named": true
         },
         {
@@ -7696,6 +8399,10 @@
           },
           {
             "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
             "named": true
           },
           {
@@ -8018,6 +8725,10 @@
           },
           {
             "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
             "named": true
           },
           {
@@ -8454,11 +9165,79 @@
         "required": true,
         "types": [
           {
+            "type": "actor_exp",
+            "named": true
+          },
+          {
+            "type": "annot_exp_block",
+            "named": true
+          },
+          {
+            "type": "array_exp",
+            "named": true
+          },
+          {
+            "type": "array_idx_exp_block",
+            "named": true
+          },
+          {
+            "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
+            "type": "awaitstar_exp",
+            "named": true
+          },
+          {
+            "type": "bang_exp_block",
+            "named": true
+          },
+          {
+            "type": "bin_exp_block",
+            "named": true
+          },
+          {
+            "type": "call_exp_block",
+            "named": true
+          },
+          {
+            "type": "coalesce_exp_block",
+            "named": true
+          },
+          {
+            "type": "debug_show_exp",
+            "named": true
+          },
+          {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
+            "named": true
+          },
+          {
+            "type": "dot_exp_block",
+            "named": true
+          },
+          {
+            "type": "from_candid_exp",
+            "named": true
+          },
+          {
+            "type": "hash_exp",
+            "named": true
+          },
+          {
             "type": "lit_exp",
             "named": true
           },
           {
-            "type": "object_exp",
+            "type": "not_exp",
             "named": true
           },
           {
@@ -8466,7 +9245,35 @@
             "named": true
           },
           {
+            "type": "parenthetical_exp",
+            "named": true
+          },
+          {
             "type": "prim_exp",
+            "named": true
+          },
+          {
+            "type": "proj_exp_block",
+            "named": true
+          },
+          {
+            "type": "quest_exp",
+            "named": true
+          },
+          {
+            "type": "system_exp_block",
+            "named": true
+          },
+          {
+            "type": "to_candid_exp",
+            "named": true
+          },
+          {
+            "type": "unassign_exp",
+            "named": true
+          },
+          {
+            "type": "unop_exp",
             "named": true
           },
           {
@@ -8517,6 +9324,10 @@
           },
           {
             "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
             "named": true
           },
           {
@@ -8751,6 +9562,10 @@
           },
           {
             "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
             "named": true
           },
           {
@@ -8991,6 +9806,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -9265,6 +10084,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -9581,6 +10404,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -9833,6 +10660,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -10128,6 +10959,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -10516,6 +11351,10 @@
             "named": true
           },
           {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
             "type": "awaitstar_exp",
             "named": true
           },
@@ -10747,6 +11586,10 @@
           },
           {
             "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
             "named": true
           },
           {
@@ -10993,11 +11836,23 @@
           "named": true
         },
         {
+          "type": "array_idx_exp_block",
+          "named": true
+        },
+        {
           "type": "array_idx_exp_object",
           "named": true
         },
         {
+          "type": "bang_exp_block",
+          "named": true
+        },
+        {
           "type": "bang_exp_object",
+          "named": true
+        },
+        {
+          "type": "call_exp_block",
           "named": true
         },
         {
@@ -11006,6 +11861,10 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_block",
           "named": true
         },
         {
@@ -11045,11 +11904,19 @@
           "named": true
         },
         {
+          "type": "proj_exp_block",
+          "named": true
+        },
+        {
           "type": "proj_exp_object",
           "named": true
         },
         {
           "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_block",
           "named": true
         },
         {
@@ -11331,6 +12198,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -11854,11 +12725,23 @@
           "named": true
         },
         {
+          "type": "array_idx_exp_block",
+          "named": true
+        },
+        {
           "type": "array_idx_exp_object",
           "named": true
         },
         {
+          "type": "bang_exp_block",
+          "named": true
+        },
+        {
           "type": "bang_exp_object",
+          "named": true
+        },
+        {
+          "type": "call_exp_block",
           "named": true
         },
         {
@@ -11867,6 +12750,10 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_block",
           "named": true
         },
         {
@@ -11906,11 +12793,19 @@
           "named": true
         },
         {
+          "type": "proj_exp_block",
+          "named": true
+        },
+        {
           "type": "proj_exp_object",
           "named": true
         },
         {
           "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_block",
           "named": true
         },
         {
@@ -11966,6 +12861,10 @@
         },
         {
           "type": "tup_pat",
+          "named": true
+        },
+        {
+          "type": "unop_pat",
           "named": true
         },
         {
@@ -12065,6 +12964,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -12327,11 +13230,79 @@
         "required": true,
         "types": [
           {
+            "type": "actor_exp",
+            "named": true
+          },
+          {
+            "type": "annot_exp_block",
+            "named": true
+          },
+          {
+            "type": "array_exp",
+            "named": true
+          },
+          {
+            "type": "array_idx_exp_block",
+            "named": true
+          },
+          {
+            "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
+            "type": "awaitstar_exp",
+            "named": true
+          },
+          {
+            "type": "bang_exp_block",
+            "named": true
+          },
+          {
+            "type": "bin_exp_block",
+            "named": true
+          },
+          {
+            "type": "call_exp_block",
+            "named": true
+          },
+          {
+            "type": "coalesce_exp_block",
+            "named": true
+          },
+          {
+            "type": "debug_show_exp",
+            "named": true
+          },
+          {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
+            "named": true
+          },
+          {
+            "type": "dot_exp_block",
+            "named": true
+          },
+          {
+            "type": "from_candid_exp",
+            "named": true
+          },
+          {
+            "type": "hash_exp",
+            "named": true
+          },
+          {
             "type": "lit_exp",
             "named": true
           },
           {
-            "type": "object_exp",
+            "type": "not_exp",
             "named": true
           },
           {
@@ -12339,7 +13310,35 @@
             "named": true
           },
           {
+            "type": "parenthetical_exp",
+            "named": true
+          },
+          {
             "type": "prim_exp",
+            "named": true
+          },
+          {
+            "type": "proj_exp_block",
+            "named": true
+          },
+          {
+            "type": "quest_exp",
+            "named": true
+          },
+          {
+            "type": "system_exp_block",
+            "named": true
+          },
+          {
+            "type": "to_candid_exp",
+            "named": true
+          },
+          {
+            "type": "unassign_exp",
+            "named": true
+          },
+          {
+            "type": "unop_exp",
             "named": true
           },
           {
@@ -12589,6 +13588,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -12828,6 +13831,10 @@
           "named": true
         },
         {
+          "type": "awaitquest_exp",
+          "named": true
+        },
+        {
           "type": "awaitstar_exp",
           "named": true
         },
@@ -13064,6 +14071,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -13762,11 +14773,23 @@
           "named": true
         },
         {
+          "type": "array_idx_exp_block",
+          "named": true
+        },
+        {
           "type": "array_idx_exp_object",
           "named": true
         },
         {
+          "type": "bang_exp_block",
+          "named": true
+        },
+        {
           "type": "bang_exp_object",
+          "named": true
+        },
+        {
+          "type": "call_exp_block",
           "named": true
         },
         {
@@ -13775,6 +14798,10 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_block",
           "named": true
         },
         {
@@ -13814,11 +14841,19 @@
           "named": true
         },
         {
+          "type": "proj_exp_block",
+          "named": true
+        },
+        {
           "type": "proj_exp_object",
           "named": true
         },
         {
           "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_block",
           "named": true
         },
         {
@@ -13879,11 +14914,23 @@
           "named": true
         },
         {
+          "type": "array_idx_exp_block",
+          "named": true
+        },
+        {
           "type": "array_idx_exp_object",
           "named": true
         },
         {
+          "type": "bang_exp_block",
+          "named": true
+        },
+        {
           "type": "bang_exp_object",
+          "named": true
+        },
+        {
+          "type": "call_exp_block",
           "named": true
         },
         {
@@ -13892,6 +14939,10 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "dot_exp_block",
           "named": true
         },
         {
@@ -13931,11 +14982,19 @@
           "named": true
         },
         {
+          "type": "proj_exp_block",
+          "named": true
+        },
+        {
           "type": "proj_exp_object",
           "named": true
         },
         {
           "type": "quest_exp",
+          "named": true
+        },
+        {
+          "type": "system_exp_block",
           "named": true
         },
         {
@@ -14180,6 +15239,10 @@
         },
         {
           "type": "await_exp",
+          "named": true
+        },
+        {
+          "type": "awaitquest_exp",
           "named": true
         },
         {
@@ -14514,6 +15577,10 @@
             "named": true
           },
           {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
             "type": "awaitstar_exp",
             "named": true
           },
@@ -14712,11 +15779,79 @@
         "required": true,
         "types": [
           {
+            "type": "actor_exp",
+            "named": true
+          },
+          {
+            "type": "annot_exp_block",
+            "named": true
+          },
+          {
+            "type": "array_exp",
+            "named": true
+          },
+          {
+            "type": "array_idx_exp_block",
+            "named": true
+          },
+          {
+            "type": "await_exp",
+            "named": true
+          },
+          {
+            "type": "awaitquest_exp",
+            "named": true
+          },
+          {
+            "type": "awaitstar_exp",
+            "named": true
+          },
+          {
+            "type": "bang_exp_block",
+            "named": true
+          },
+          {
+            "type": "bin_exp_block",
+            "named": true
+          },
+          {
+            "type": "call_exp_block",
+            "named": true
+          },
+          {
+            "type": "coalesce_exp_block",
+            "named": true
+          },
+          {
+            "type": "debug_show_exp",
+            "named": true
+          },
+          {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
+            "named": true
+          },
+          {
+            "type": "dot_exp_block",
+            "named": true
+          },
+          {
+            "type": "from_candid_exp",
+            "named": true
+          },
+          {
+            "type": "hash_exp",
+            "named": true
+          },
+          {
             "type": "lit_exp",
             "named": true
           },
           {
-            "type": "object_exp",
+            "type": "not_exp",
             "named": true
           },
           {
@@ -14724,7 +15859,35 @@
             "named": true
           },
           {
+            "type": "parenthetical_exp",
+            "named": true
+          },
+          {
             "type": "prim_exp",
+            "named": true
+          },
+          {
+            "type": "proj_exp_block",
+            "named": true
+          },
+          {
+            "type": "quest_exp",
+            "named": true
+          },
+          {
+            "type": "system_exp_block",
+            "named": true
+          },
+          {
+            "type": "to_candid_exp",
+            "named": true
+          },
+          {
+            "type": "unassign_exp",
+            "named": true
+          },
+          {
+            "type": "unop_exp",
             "named": true
           },
           {
@@ -15011,6 +16174,10 @@
   },
   {
     "type": "await*",
+    "named": false
+  },
+  {
+    "type": "await?",
     "named": false
   },
   {

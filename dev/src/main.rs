@@ -6,25 +6,23 @@ use anyhow::{Context, Result};
 use camino::Utf8Path;
 use walkdir::WalkDir;
 
-/// Tests for parse errors not labeled as syntax-*
-const TEST_FAIL_EXCLUDES: [&str; 16] = [
+/// Compiler tests that are genuine parse errors and so cannot become
+/// positive corpus tests. Files named `syntax*.mo` are excluded by prefix
+/// (see `is_excluded`); these are the rest.
+const TEST_FAIL_EXCLUDES: [&str; 8] = [
     "par-bad-asyncstar.mo",
+    "par-bad-nocall.mo",
     "obj-empty-with.mo",
     "lexer-offset-1504.mo",
     "multiline-text-line-number.mo",
     "parse-block-or-record.mo", // Tests error recovery
-    "syntax1.mo",
-    "syntax2.mo",
-    "syntax3.mo",
-    "syntax3.mo",
-    "syntax4.mo",
-    "syntax5.mo",
-    "syntax6.mo",
-    "syntax7.mo",
-    "syntax8.mo",
     "verification-asserts.mo",
     "verification-implies.mo",
 ];
+
+fn is_excluded(file_name: &str, excludes: &[&str]) -> bool {
+    excludes.contains(&file_name) || file_name.starts_with("syntax")
+}
 
 fn main() -> Result<()> {
     if !fs::exists("../justfile")? || !fs::exists("../tree-sitter.json")? {
@@ -86,7 +84,7 @@ fn copy_test_cases(
             continue;
         }
         let file_name = path.file_name().unwrap();
-        if excludes.contains(&file_name) {
+        if is_excluded(file_name, excludes) {
             continue;
         }
         let test_name = path.strip_prefix(mo_base).unwrap();
