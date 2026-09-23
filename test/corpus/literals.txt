@@ -39,6 +39,7 @@ Float
 
 1.5;
 1e10;
+1e-10;
 2.5e-3;
 1.5+3;
 0x1.8p3;
@@ -47,6 +48,9 @@ Float
 ---
 
 (source_file
+  (exp_dec
+    (lit_exp
+      (float_literal)))
   (exp_dec
     (lit_exp
       (float_literal)))

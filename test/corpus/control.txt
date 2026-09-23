@@ -171,6 +171,8 @@ if (a) +1 else 0;
 if (c) #less else #greater;
 if a #yes else #no;
 if (c) { 0 } else if (a) 1 else 2;
+if (c) ?n else null;
+if(c) n else 0;
 
 ---
 
@@ -293,7 +295,26 @@ if (c) { 0 } else if (a) 1 else 2;
         (lit_exp
           (int_literal))
         (lit_exp
-          (int_literal))))))
+          (int_literal)))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (quest_exp
+        (var_exp
+          (identifier)))
+      (lit_exp
+        (null_literal))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (var_exp
+        (identifier))
+      (lit_exp
+        (int_literal)))))
 
 ==================
 Spaced paren after an atomic head starts the branch
@@ -813,6 +834,109 @@ let masked : Nat8 = 0xff ^0x0f;
         (hex_literal)))))
 
 ==================
+Glued sign operators are binary
+==================
+
+let a = n-1;
+let b = n+1;
+x := x-1.5;
+let d = 1e-10 - x;
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (var_exp
+        (identifier))
+      (bin_op)
+      (lit_exp
+        (int_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (var_exp
+        (identifier))
+      (bin_op)
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (assign_exp_object
+      (var_exp
+        (identifier))
+      (bin_exp_object
+        (var_exp
+          (identifier))
+        (bin_op)
+        (lit_exp
+          (float_literal)))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (lit_exp
+        (float_literal))
+      (bin_op)
+      (var_exp
+        (identifier)))))
+
+==================
+Unary operators bind looser than postfix
+==================
+
+let e = -n.toText();
+let g = -xs[0];
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (unop_exp
+      (unop)
+      (call_exp_object
+        (dot_exp_object
+          (var_exp
+            (identifier))
+          (identifier))
+        (par_exp))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (unop_exp
+      (unop)
+      (array_idx_exp_object
+        (var_exp
+          (identifier))
+        (lit_exp
+          (int_literal))))))
+
+==================
+A comment does not unglue a call in a head
+==================
+
+if f/*c*/(x) { };
+
+---
+
+(source_file
+  (exp_dec
+    (if_exp
+      (call_exp_block
+        (var_exp
+          (identifier))
+        (block_comment
+          (comment_text))
+        (par_exp
+          (var_exp
+            (identifier))))
+      (block_exp))))
+
+==================
 Signed literals are unary operators
 ==================
 
@@ -867,6 +991,7 @@ Break with a full expression, await?
 
 let bk = label l : Nat loop { break l inc(41) };
 let y = await? f();
+let z = await ?x;
 
 ---
 
@@ -898,7 +1023,14 @@ let y = await? f();
       (call_exp_block
         (var_exp
           (identifier))
-        (par_exp)))))
+        (par_exp))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (await_exp
+      (quest_exp
+        (var_exp
+          (identifier))))))
 
 ==================
 Unspaced ?? after an atomic head starts the branch
@@ -906,6 +1038,9 @@ Unspaced ?? after an atomic head starts the branch
 
 let q = if (c) ??x else null;
 let r = opt ?? x;
+let s = opt ??
+  0;
+if opt ?? 0 == 0 { };
 
 ---
 
@@ -930,7 +1065,27 @@ let r = opt ?? x;
       (var_exp
         (identifier))
       (var_exp
-        (identifier)))))
+        (identifier))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (var_exp
+        (identifier))
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (if_exp
+      (coalesce_exp_block
+        (var_exp
+          (identifier))
+        (bin_exp_block
+          (lit_exp
+            (int_literal))
+          (rel_op)
+          (lit_exp
+            (int_literal))))
+      (block_exp))))
 
 ==================
 Unspaced ?? is not the coalescing operator
