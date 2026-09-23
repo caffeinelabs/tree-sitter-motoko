@@ -1,0 +1,40 @@
+[
+  {
+    "name": "skills",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages"
+  },
+  {
+    "name": "base",
+    "repository": "https://github.com/caffeinelabs/motoko-base"
+  },
+  {
+    "name": "bench",
+    "repository": "https://github.com/caffeinelabs/mops-bench"
+  },
+  {
+    "name": "ic",
+    "repository": "https://github.com/caffeinelabs/mops-ic"
+  },
+  {
+    "name": "test",
+    "repository": "https://github.com/caffeinelabs/mops-test"
+  },
+  {
+    "name": "bitcoin",
+    "repository": "https://github.com/caffeinelabs/motoko-bitcoin"
+  },
+  {
+    "name": "mops",
+    "repository": "https://github.com/caffeinelabs/mops"
+  },
+  {
+    "name": "serde",
+    "repository": "https://github.com/NatLabs/serde"
+  },
+  {
+    "name": "ic-vetkeys",
+    "repository": "https://github.com/dfinity/vetkeys",
+    "path": "backend/mo/ic_vetkeys"
+  }
+]

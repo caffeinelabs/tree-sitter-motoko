@@ -18,3 +18,7 @@ test-generate:
 accept:
     npx tree-sitter generate
     npx tree-sitter test --update
+
+packages:
+    npx tree-sitter generate
+    dev/parse-packages.sh
