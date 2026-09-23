@@ -1,16 +1,72 @@
 [
   {
-    "name": "skills",
+    "name": "caffeineai-oql",
     "repository": "https://github.com/caffeinelabs/skills",
-    "path": "packages"
+    "path": "packages/oql/backend"
+  },
+  {
+    "name": "caffeineai-authorization",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/authorization/backend"
+  },
+  {
+    "name": "caffeineai-stripe",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/stripe/backend"
+  },
+  {
+    "name": "caffeineai-object-storage",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/object-storage/backend"
+  },
+  {
+    "name": "caffeineai-http-outcalls",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/http-outcalls/backend"
+  },
+  {
+    "name": "caffeineai-email",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/email/backend"
+  },
+  {
+    "name": "caffeineai-email-verification",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/email-verification/backend"
+  },
+  {
+    "name": "caffeineai-email-marketing",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/email-marketing/backend"
+  },
+  {
+    "name": "caffeineai-email-calendar-events",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/email-calendar-events/backend"
+  },
+  {
+    "name": "caffeineai-invite-links",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/invite-links/backend"
+  },
+  {
+    "name": "caffeineai-user-approval",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/user-approval/backend"
+  },
+  {
+    "name": "caffeineai-data-viewer",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/data-viewer/backend"
+  },
+  {
+    "name": "caffeineai-lints",
+    "repository": "https://github.com/caffeinelabs/skills",
+    "path": "packages/caffeine-lints/backend"
   },
   {
     "name": "base",
     "repository": "https://github.com/caffeinelabs/motoko-base"
-  },
-  {
-    "name": "bench",
-    "repository": "https://github.com/caffeinelabs/mops-bench"
   },
   {
     "name": "ic",
@@ -21,16 +77,12 @@
     "repository": "https://github.com/caffeinelabs/mops-test"
   },
   {
+    "name": "bench",
+    "repository": "https://github.com/caffeinelabs/mops-bench"
+  },
+  {
     "name": "bitcoin",
     "repository": "https://github.com/caffeinelabs/motoko-bitcoin"
-  },
-  {
-    "name": "mops",
-    "repository": "https://github.com/caffeinelabs/mops"
-  },
-  {
-    "name": "serde",
-    "repository": "https://github.com/NatLabs/serde"
   },
   {
     "name": "ic-vetkeys",

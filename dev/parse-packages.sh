@@ -11,7 +11,8 @@ mkdir -p "$clones"
 
 status=0
 while IFS=$'\t' read -r name repository path; do
-  dir="$clones/$name"
+  # Several packages live in one monorepo, so clones are keyed by repository, not by package
+  dir="$clones/$(basename "$(dirname "$repository")")-$(basename "$repository")"
   if [ ! -d "$dir/.git" ]; then
     git clone -q --depth 1 "$repository" "$dir"
   fi
@@ -26,7 +27,7 @@ while IFS=$'\t' read -r name repository path; do
   out=$(find "$src" -name '*.mo' -not -path '*/.mops/*' -not -path '*/node_modules/*' -print0 \
     | xargs -0 npx tree-sitter parse -q --stat 2>&1 || true)
   failed=$(printf '%s\n' "$out" | grep -cE 'ERROR|MISSING' || true)
-  printf '%-12s %5s files %3s failed\n' "$name" "$files" "$failed"
+  printf '%-34s %5s files %3s failed\n' "$name" "$files" "$failed"
   if [ "$failed" != 0 ]; then
     printf '%s\n' "$out" | grep -E 'ERROR|MISSING' | sed "s#^$clones/##"
     status=1
