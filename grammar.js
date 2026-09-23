@@ -27,8 +27,36 @@ function semi_sep1(rule) {
 // $._exp_object depending on the passed `b` parameter. We then use
 // the `mk_exp`, ... functions and register both object and block
 // variants on the main grammar.
+//
+// NOTE(def: head-mode): a third expression mode for unparenthesized control heads, where `{` always opens the body.
+// The "head" mode is the condition of `if`/`while`, the scrutinee of `switch` and the collection of `for`
+// when written without parentheses. It is block mode with two restrictions that make the `{` after the head
+// always open the body: no record literal can appear anywhere in the head, and a call or index only continues
+// the head when its `(`/`[` is glued to what precedes it (`token.immediate`). A spaced `(`/`[` starts the legacy
+// bare branch instead, exactly as in the compiler's lexer. The prefix-shaped operators (`if (c) -1 else 1`,
+// `if a #yes else #no`) are resolved by GLR: the head reading dies when no block follows, and where both
+// readings survive `prec.dynamic` prefers the head. Head-mode nodes are aliased to the `_block` node names,
+// so consumers see no new node kinds.
 function _exp($, b) {
   return $[`_exp_${b}`]
+}
+
+// Head-mode variants of the postfix/binary productions are registered
+// as `<name>_head` and aliased to `<name>_block` wherever referenced.
+function mode_rule($, name, b) {
+  if (b == "head") {
+    return alias($[`${name}_head`], $[`${name}_block`]);
+  }
+  return $[`${name}_${b}`];
+}
+
+// Head-mode variants of the unparameterized prefix forms are aliased
+// back to the plain node name.
+function head_alias($, name, b) {
+  if (b == "head") {
+    return alias($[`${name}_head`], $[name]);
+  }
+  return $[name];
 }
 
 function _exp_non_dec($, b) {
@@ -56,35 +84,35 @@ function assign_exp($, b) {
 }
 
 function array_idx_exp($, b) {
-  return $[`array_idx_exp_${b}`]
+  return mode_rule($, "array_idx_exp", b)
 }
 
 function proj_exp($, b) {
-  return $[`proj_exp_${b}`]
+  return mode_rule($, "proj_exp", b)
 }
 
 function dot_exp($, b) {
-  return $[`dot_exp_${b}`]
+  return mode_rule($, "dot_exp", b)
 }
 
 function call_exp($, b) {
-  return $[`call_exp_${b}`]
+  return mode_rule($, "call_exp", b)
 }
 
 function bang_exp($, b) {
-  return $[`bang_exp_${b}`]
+  return mode_rule($, "bang_exp", b)
 }
 
 function system_exp($, b) {
-  return $[`system_exp_${b}`]
+  return mode_rule($, "system_exp", b)
 }
 
 function bin_exp($, b) {
-  return $[`bin_exp_${b}`]
+  return mode_rule($, "bin_exp", b)
 }
 
 function annot_exp($, b) {
-  return $[`annot_exp_${b}`]
+  return mode_rule($, "annot_exp", b)
 }
 
 function binassign_exp($, b) {
@@ -92,7 +120,7 @@ function binassign_exp($, b) {
 }
 
 function coalesce_exp($, b) {
-  return $[`coalesce_exp_${b}`]
+  return mode_rule($, "coalesce_exp", b)
 }
 
 // NOTE(id: object-vs-block-expression): Conditionally allows parsing
@@ -128,6 +156,7 @@ function mk_exp_non_dec($, b) {
     $.asyncstar_exp,
     $.await_exp,
     $.awaitstar_exp,
+    $.awaitquest_exp,
     $.assert_exp,
     $.label_exp,
     $.break_exp,
@@ -162,25 +191,32 @@ function mk_exp_bin($, b) {
   ))
 }
 
-function mk_exp_unary($, b) {
+// The prefix forms. In head mode their operands are head-mode too.
+function mk_exp_un_ext($, b) {
   return choice(
-    _exp_post($, b),
-    $.parenthetical_exp,
-    $.hash_exp,
-    $.quest_exp,
-    $.unop_exp,
-    $.unassign_exp,
+    head_alias($, "parenthetical_exp", b),
+    head_alias($, "hash_exp", b),
+    head_alias($, "quest_exp", b),
+    head_alias($, "unop_exp", b),
+    head_alias($, "unassign_exp", b),
     $.actor_exp,
-    $.not_exp,
-    $.debug_show_exp,
+    head_alias($, "not_exp", b),
+    head_alias($, "debug_show_exp", b),
     $.to_candid_exp,
-    $.from_candid_exp,
+    head_alias($, "from_candid_exp", b),
   );
 }
 
-function mk_exp_post($, b) {
+function mk_exp_unary($, b) {
   return choice(
-    _exp_nullary($, b),
+    _exp_post($, b),
+    mk_exp_un_ext($, b),
+  );
+}
+
+// The postfix forms that grow an expression past a single atom.
+function mk_exp_post_ext($, b) {
+  return choice(
     $.array_exp,
     array_idx_exp($, b),
     proj_exp($, b),
@@ -188,6 +224,13 @@ function mk_exp_post($, b) {
     call_exp($, b),
     bang_exp($, b),
     system_exp($, b),
+  )
+}
+
+function mk_exp_post($, b) {
+  return choice(
+    _exp_nullary($, b),
+    mk_exp_post_ext($, b),
   )
 }
 
@@ -202,7 +245,8 @@ function mk_assign_exp($, b) {
 function mk_array_idx_exp($, b) {
   return seq(
     _exp_post($, b),
-    "[",
+    // NOTE(id: head-mode): only a glued `[` continues a head
+    b == "head" ? token.immediate("[") : "[",
     $._exp_object,
     "]",
   )
@@ -225,6 +269,19 @@ function mk_dot_exp($, b) {
 }
 
 function mk_call_exp($, b) {
+  if (b == "head") {
+    // NOTE(id: head-mode): in a head, an argument list continues the
+    // call only when its `(` is glued (`f(x)`); `f (x)` and `f x`
+    // already belong to the branch. After an explicit instantiation
+    // `f<T>` the argument is any non-record atom, as in the compiler.
+    return seq(
+      $._exp_post_head,
+      choice(
+        alias($._par_exp_tight, $.par_exp),
+        seq($.inst, $._exp_nullary_head),
+      ),
+    )
+  }
   return seq(
     _exp_post($, b),
     optional($.inst),
@@ -251,6 +308,16 @@ function mk_system_exp($, b) {
 }
 
 function mk_bin_exp($, b) {
+  if (b == "head") {
+    // NOTE(id: head-mode): the right operand stays in head mode, and the
+    // dynamic precedence makes `if a - 1 > 0 { }` read as a head rather
+    // than as an atomic head `a` followed by the bare branch `-1 > 0 { }`.
+    return prec.dynamic(1, prec.left(seq(
+      field("left", $._exp_bin_head),
+      choice($.bin_op, $.rel_op),
+      field("right", $._exp_bin_head),
+    )))
+  }
   return prec.left(seq(
     field("left", _exp_bin($, b)),
     choice($.bin_op, $.rel_op),
@@ -274,11 +341,13 @@ function mk_binassign_exp($, b) {
   )
 }
 
+// The right-hand side of `??` is expression position:
+// `opt ?? { x = 0 }` is a record and a block is spelled `opt ?? do { }`.
 function mk_coalesce_exp($, b) {
   return prec.right(seq(
     field("value", _exp_bin($, b)),
-    "??",
-    field("default", $._exp_nest),
+    $._coalesce_op,
+    field("default", b == "head" ? $._head : $._exp_object),
   ))
 }
 
@@ -286,7 +355,15 @@ export default grammar({
   name: "motoko",
   extras: $ => [/\s+/, $.doc_comment, $.line_comment, $.block_comment],
   word: $ => $.identifier,
-  conflicts: $ => [[$.var_exp, $.var_pat]],
+  conflicts: $ => [
+    [$.var_exp, $.var_pat],
+    // NOTE(id: head-mode): after an atomic head, a prefix-shaped `#`, `-`,
+    // `+` or `^` may continue the head as a binary operator or start the
+    // legacy bare branch; GLR keeps both until the block (or its absence)
+    // decides, and `prec.dynamic` on the head reading breaks ties.
+    [$._exp_post_head, $.if_exp],
+    [$._exp_post_head, $.while_exp],
+  ],
 
   rules: {
     source_file: $ => seq(
@@ -310,14 +387,18 @@ export default grammar({
     // Literals
     text_literal: $ => /"(?:\\[unrt\\"'0-9a-fA-F]|[^\\"])*"/,
     char_literal: $ => /'\\''|'[^']*'/,
+    // NOTE(def: unsigned-literals): number literals carry no sign. As in
+    // the compiler's lexer, `-1` is the unary operator applied to `1`
+    // (`unop_exp` / `unop_pat`); otherwise `n -1` would lex as `n` applied
+    // to `-1` and `if k-1 > 0 { }` could not read `k-1` as a subtraction.
     float_literal: $ => token(choice(
-      /[+-]?[0-9_]+\.[0-9_]*/,
-      /[+-]?[0-9_]+(:?\.[0-9]*)[eE]?[+-]?[0-9_]+/,
-      /[+-]?0x[0-9a-fA-F_]+\.[0-9a-fA-F_]*?/,
-      /[+-]?0x[0-9a-fA-F_]+(:?\.[0-9a-fA-F_]*)?[+-]?[pP][0-9]+/,
+      /[0-9_]+\.[0-9_]*/,
+      /[0-9_]+(\.[0-9_]*)?[eE][+-]?[0-9_]+/,
+      /0x[0-9a-fA-F_]+\.[0-9a-fA-F_]*/,
+      /0x[0-9a-fA-F_]+(\.[0-9a-fA-F_]*)?[pP][+-]?[0-9_]+/,
     )),
-    int_literal: $ => /[+-]?[0-9_]+/,
-    hex_literal: $ => /[+-]?0x[0-9a-fA-F_]+/,
+    int_literal: $ => /[0-9_]+/,
+    hex_literal: $ => /0x[0-9a-fA-F_]+/,
     bool_literal: $ => choice("true", "false"),
     null_literal: $ => "null",
     _literal: $ => choice(
@@ -428,6 +509,10 @@ export default grammar({
       "**",
       "**%",
     ),
+
+    // `??` is the coalescing operator only when whitespace follows, as in the compiler's lexer:
+    // `??x` is `?(?x)`, so `if (c) ??x else y` keeps its bare branch. The whitespace is part of the token.
+    _coalesce_op: $ => alias(token(/\?\?[ \t\r\n]/), "??"),
 
     // Imports
 
@@ -569,6 +654,56 @@ export default grammar({
     _exp_bin_block: $ => mk_exp_bin($, "block"),
     _exp_bin_object: $ => mk_exp_bin($, "object"),
 
+    // NOTE(id: head-mode)
+    _exp_nullary_head: $ => mk_exp_nullary($, "head"),
+    _exp_post_head: $ => mk_exp_post($, "head"),
+    _exp_unary_head: $ => mk_exp_unary($, "head"),
+    _exp_bin_head: $ => mk_exp_bin($, "head"),
+
+    // An extended head: a condition or scrutinee that is more than a
+    // single atom. Disjoint from `_exp_nullary_head` by construction,
+    // which is what couples the head shape to braced branches in
+    // `if_exp` and `while_exp` without ambiguity.
+    _exp_head: $ => choice(
+      mk_exp_post_ext($, "head"),
+      mk_exp_un_ext($, "head"),
+      bin_exp($, "head"),
+      annot_exp($, "head"),
+      coalesce_exp($, "head"),
+      alias($.await_exp_head, $.await_exp),
+      alias($.awaitstar_exp_head, $.awaitstar_exp),
+      alias($.awaitquest_exp_head, $.awaitquest_exp),
+      $.do_exp,
+      $.do_quest_exp,
+    ),
+
+    // The one head grammar shared by `if`, `while`, `switch` and `for`:
+    // an atom or an extended head.
+    _head: $ => choice(
+      $._exp_nullary_head,
+      $._exp_head,
+    ),
+
+    _par_exp_tight: $ => seq(token.immediate("("), comma_sep($._exp_object), ")"),
+
+    parenthetical_exp_head: $ => seq(
+      $.parenthetical,
+      alias($.call_exp_head, $.call_exp_block),
+    ),
+    hash_exp_head: $ => seq(
+      $.tag_identifier,
+      optional($._exp_nullary_head),
+    ),
+    quest_exp_head: $ => seq("?", $._exp_unary_head),
+    unop_exp_head: $ => seq($.unop, $._exp_unary_head),
+    unassign_exp_head: $ => seq($.unassign_op, $._exp_unary_head),
+    not_exp_head: $ => seq("not", $._exp_unary_head),
+    debug_show_exp_head: $ => seq("debug_show", $._exp_unary_head),
+    from_candid_exp_head: $ => seq("from_candid", $._exp_unary_head),
+    await_exp_head: $ => seq("await", choice($.block_exp, $._head)),
+    awaitstar_exp_head: $ => seq("await*", choice($.block_exp, $._head)),
+    awaitquest_exp_head: $ => seq("await?", choice($.block_exp, $._head)),
+
     _exp_nest: $ => choice(
       $.block_exp,
       $._exp_block,
@@ -584,13 +719,43 @@ export default grammar({
     lit_exp: $ => $._literal,
     par_exp: $ => seq("(", comma_sep($._exp_object), ")"),
     var_exp: $ => $.identifier,
-    if_exp: $ => prec.right(seq(
+    // `if` has two coupled shapes. An atomic head keeps
+    // the free-form branches Motoko always had; an extended head demands
+    // braced branches, with `else if` chains allowed. A record literal as
+    // head needs parentheses, so the head is never in object mode.
+    if_exp: $ => choice(
+      prec.right(seq(
+        "if",
+        field("condition", $._exp_nullary_head),
+        field("then", $._exp_nest),
+        optional(seq(
+          "else",
+          field("else", $._exp_nest),
+        ))
+      )),
+      prec.right(seq(
+        "if",
+        field("condition", $._exp_head),
+        field("then", $.block_exp),
+        optional(seq(
+          "else",
+          field("else", $._else_branch),
+        ))
+      )),
+    ),
+    // `else if` chains only into the braced shape, so a legacy bare-branch
+    // `if` cannot ride on an extended head.
+    _else_branch: $ => choice(
+      $.block_exp,
+      alias($._if_braced, $.if_exp),
+    ),
+    _if_braced: $ => prec.right(seq(
       "if",
-      field("condition", $._exp_nullary_object),
-      field("then", $._exp_nest),
+      field("condition", $._head),
+      field("then", $.block_exp),
       optional(seq(
         "else",
-        field("else", $._exp_nest),
+        field("else", $._else_branch),
       ))
     )),
     object_exp: $ => seq(
@@ -663,7 +828,7 @@ export default grammar({
     ),
 
     // TODO(def: prec.nonassoc): https://github.com/tree-sitter/tree-sitter/issues/761
-    return_exp: $ => prec.left(seq(
+    return_exp: $ => prec.right(seq(
       "return",
       optional($._exp_object),
     )),
@@ -689,6 +854,11 @@ export default grammar({
       $._exp_nest,
     ),
 
+    awaitquest_exp: $ => seq(
+      "await?",
+      $._exp_nest,
+    ),
+
     assert_exp: $ => seq(
       "assert",
       $._exp_nest,
@@ -701,13 +871,15 @@ export default grammar({
       $._exp_nest,
     ),
 
-    break_exp: $ => seq(
+    // `break l e` takes any expression, like `return e`
+    // TODO(id: prec.nonassoc)
+    break_exp: $ => prec.right(seq(
       "break",
       optional(seq(
         field("label", $.identifier),
-        optional($._exp_nullary_object),
+        optional($._exp_object),
       )),
-    ),
+    )),
 
     continue_exp: $ => seq("continue", optional(field("label", $.identifier))),
     debug_exp: $ => seq("debug", $._exp_nest),
@@ -730,28 +902,48 @@ export default grammar({
         field("condition", $._exp_nest),
       ))
     )),
-    while_exp: $ => seq(
-      "while",
-      field("condition", $._exp_nullary_object),
-      field("body", $._exp_nest),
+    while_exp: $ => choice(
+      seq(
+        "while",
+        field("condition", $._exp_nullary_head),
+        field("body", $._exp_nest),
+      ),
+      seq(
+        "while",
+        field("condition", $._exp_head),
+        field("body", $.block_exp),
+      ),
     ),
-    for_exp: $ => seq(
-      "for",
-      "(",
-      $._pat,
-      "in",
-      field("iterator", $._exp_object),
-      ")",
-      field("body", $._exp_nest),
+    // `for (p in e) body` is the legacy form; `for p in e { }` delimits
+    // the pattern by `in` and the head by `{`.
+    for_exp: $ => choice(
+      seq(
+        "for",
+        "(",
+        field("pattern", $._pat),
+        "in",
+        field("iterator", $._exp_object),
+        ")",
+        field("body", $._exp_nest),
+      ),
+      seq(
+        "for",
+        field("pattern", $._pat),
+        "in",
+        field("iterator", $._head),
+        field("body", $.block_exp),
+      ),
     ),
     do_exp: $ => seq("do", $.block_exp),
     do_quest_exp: $ => seq("do", "?", $.block_exp),
 
+    // The `;` between cases is optional: every case starts
+    // with the `case` keyword, so the separator disambiguates nothing.
     switch_exp: $ => seq(
       "switch",
-      field("scrutinee", $._exp_nullary_object),
+      field("scrutinee", $._head),
       "{",
-      semi_sep($.case),
+      repeat(seq($.case, optional(";"))),
       "}",
     ),
 
@@ -802,10 +994,41 @@ export default grammar({
     coalesce_exp_block: $ => mk_coalesce_exp($, "block"),
     coalesce_exp_object: $ => mk_coalesce_exp($, "object"),
 
+    // NOTE(id: head-mode)
+    array_idx_exp_head: $ => mk_array_idx_exp($, "head"),
+    proj_exp_head: $ => mk_proj_exp($, "head"),
+    dot_exp_head: $ => mk_dot_exp($, "head"),
+    call_exp_head: $ => mk_call_exp($, "head"),
+    bang_exp_head: $ => mk_bang_exp($, "head"),
+    system_exp_head: $ => mk_system_exp($, "head"),
+    bin_exp_head: $ => mk_bin_exp($, "head"),
+    annot_exp_head: $ => mk_annot_exp($, "head"),
+    coalesce_exp_head: $ => mk_coalesce_exp($, "head"),
+
     case: $ => seq(
       "case",
-      field("pattern", $._pat_nullary),
+      field("pattern", $._case_pat),
       field("body", $._exp_nest),
+    ),
+
+    // Case patterns that end unambiguously without parentheses:
+    // `case null`, `case 0`, `case -1`, `case ?p`, `case #tag`, `case #tag(p)`.
+    // A variant payload must be parenthesized so that in `case #tag { ... }` the braces are the case body.
+    _case_pat: $ => choice(
+      $._pat_nullary,
+      alias($._case_tag_pat, $.tag_pat),
+      alias($._case_quest_pat, $.quest_pat),
+      $.unop_pat,
+    ),
+    // `case #tag (x) ...`: the parenthesized pattern is the payload, as in
+    // the compiler, so a parenthesized bare body needs a payload first.
+    _case_tag_pat: $ => prec.right(seq(
+      $.tag_identifier,
+      optional($.tup_pat),
+    )),
+    _case_quest_pat: $ => seq(
+      "?",
+      $._case_pat,
     ),
     catch: $ => seq(
       "catch",
@@ -995,13 +1218,14 @@ export default grammar({
       $._pat_nullary,
       $.tag_pat,
       $.quest_pat,
+      // a signed literal is a unary pattern, as in the compiler: `? -1`
+      $.unop_pat,
     ),
     _pat_bin: $ => choice(
       $._pat_un,
       $.alt_pat,
       $.and_pat,
       $.annot_pat,
-      $.unop_pat,
     ),
 
     wild_pat: $ => "_",

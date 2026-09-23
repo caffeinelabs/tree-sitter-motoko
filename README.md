@@ -13,6 +13,7 @@ Additional differences:
 
 - Doesn't require a custom scanner
 - Covers some more recent syntax additions (parentheticals), and some of the weirder lexical productions
+- Parses the moc 2.0 syntax next to the legacy forms: unparenthesized `if`/`while`/`switch`/`for` heads with braced bodies (including the whitespace rule that a glued `(`/`[` extends the head while a spaced one starts a bare branch), optional `;` between cases, paren-free case patterns, and `??` with an expression-position right-hand side
 - Follows the compiler's grammar more closely by implementing parameterized expression productions.
 - ~33% reduction in compiled output size
 - Tested to successfully parse every .mo file in the compiler repository, as well as base

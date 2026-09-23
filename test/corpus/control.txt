@@ -1,0 +1,1129 @@
+==================
+Unparenthesized if head with braced branches
+==================
+
+if a and b { } else { };
+if f(x) { a } else { b };
+if xs[i] { a } else { b };
+if p.x { };
+if not b { };
+if k - 1 > 0 { } else { };
+if k-1 > 0 { };
+if do { c } { };
+
+---
+
+(source_file
+  (exp_dec
+    (if_exp
+      (bin_exp_block
+        (var_exp
+          (identifier))
+        (bin_op)
+        (var_exp
+          (identifier)))
+      (block_exp)
+      (block_exp)))
+  (exp_dec
+    (if_exp
+      (call_exp_block
+        (var_exp
+          (identifier))
+        (par_exp
+          (var_exp
+            (identifier))))
+      (block_exp
+        (exp_dec
+          (var_exp
+            (identifier))))
+      (block_exp
+        (exp_dec
+          (var_exp
+            (identifier))))))
+  (exp_dec
+    (if_exp
+      (array_idx_exp_block
+        (var_exp
+          (identifier))
+        (var_exp
+          (identifier)))
+      (block_exp
+        (exp_dec
+          (var_exp
+            (identifier))))
+      (block_exp
+        (exp_dec
+          (var_exp
+            (identifier))))))
+  (exp_dec
+    (if_exp
+      (dot_exp_block
+        (var_exp
+          (identifier))
+        (identifier))
+      (block_exp)))
+  (exp_dec
+    (if_exp
+      (not_exp
+        (var_exp
+          (identifier)))
+      (block_exp)))
+  (exp_dec
+    (if_exp
+      (bin_exp_block
+        (bin_exp_block
+          (var_exp
+            (identifier))
+          (bin_op)
+          (lit_exp
+            (int_literal)))
+        (rel_op)
+        (lit_exp
+          (int_literal)))
+      (block_exp)
+      (block_exp)))
+  (exp_dec
+    (if_exp
+      (bin_exp_block
+        (bin_exp_block
+          (var_exp
+            (identifier))
+          (bin_op)
+          (lit_exp
+            (int_literal)))
+        (rel_op)
+        (lit_exp
+          (int_literal)))
+      (block_exp)))
+  (exp_dec
+    (if_exp
+      (do_exp
+        (block_exp
+          (exp_dec
+            (var_exp
+              (identifier)))))
+      (block_exp))))
+
+==================
+Unparenthesized else-if chain
+==================
+
+if inc(0) == 0 { x } else if inc(0) == 1 { y } else if a { z } else { w };
+
+---
+
+(source_file
+  (exp_dec
+    (if_exp
+      (bin_exp_block
+        (call_exp_block
+          (var_exp
+            (identifier))
+          (par_exp
+            (lit_exp
+              (int_literal))))
+        (rel_op)
+        (lit_exp
+          (int_literal)))
+      (block_exp
+        (exp_dec
+          (var_exp
+            (identifier))))
+      (if_exp
+        (bin_exp_block
+          (call_exp_block
+            (var_exp
+              (identifier))
+            (par_exp
+              (lit_exp
+                (int_literal))))
+          (rel_op)
+          (lit_exp
+            (int_literal)))
+        (block_exp
+          (exp_dec
+            (var_exp
+              (identifier))))
+        (if_exp
+          (var_exp
+            (identifier))
+          (block_exp
+            (exp_dec
+              (var_exp
+                (identifier))))
+          (block_exp
+            (exp_dec
+              (var_exp
+                (identifier)))))))))
+
+==================
+Legacy if with atomic head keeps bare branches
+==================
+
+if c x else y;
+if (c) (e) else (f);
+if (c) [e] else [f];
+if c [1] else [];
+if (c) -1 else 1;
+if a -1 else 1;
+if (a) ^0 else 0;
+if (a) +1 else 0;
+if (c) #less else #greater;
+if a #yes else #no;
+if (c) { 0 } else if (a) 1 else 2;
+if (c) ?n else null;
+if(c) n else 0;
+
+---
+
+(source_file
+  (exp_dec
+    (if_exp
+      (var_exp
+        (identifier))
+      (var_exp
+        (identifier))
+      (var_exp
+        (identifier))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (par_exp
+        (var_exp
+          (identifier)))
+      (par_exp
+        (var_exp
+          (identifier)))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (array_exp
+        (var_exp
+          (identifier)))
+      (array_exp
+        (var_exp
+          (identifier)))))
+  (exp_dec
+    (if_exp
+      (var_exp
+        (identifier))
+      (array_exp
+        (lit_exp
+          (int_literal)))
+      (array_exp)))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (unop_exp
+        (unop)
+        (lit_exp
+          (int_literal)))
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (if_exp
+      (var_exp
+        (identifier))
+      (unop_exp
+        (unop)
+        (lit_exp
+          (int_literal)))
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (unop_exp
+        (unop)
+        (lit_exp
+          (int_literal)))
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (unop_exp
+        (unop)
+        (lit_exp
+          (int_literal)))
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (hash_exp
+        (tag_identifier
+          (identifier)))
+      (hash_exp
+        (tag_identifier
+          (identifier)))))
+  (exp_dec
+    (if_exp
+      (var_exp
+        (identifier))
+      (hash_exp
+        (tag_identifier
+          (identifier)))
+      (hash_exp
+        (tag_identifier
+          (identifier)))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (block_exp
+        (exp_dec
+          (lit_exp
+            (int_literal))))
+      (if_exp
+        (par_exp
+          (var_exp
+            (identifier)))
+        (lit_exp
+          (int_literal))
+        (lit_exp
+          (int_literal)))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (quest_exp
+        (var_exp
+          (identifier)))
+      (lit_exp
+        (null_literal))))
+  (exp_dec
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (var_exp
+        (identifier))
+      (lit_exp
+        (int_literal)))))
+
+==================
+Spaced paren after an atomic head starts the branch
+==================
+
+if f (x) { a } else { b };
+
+---
+
+(source_file
+  (exp_dec
+    (if_exp
+      (var_exp
+        (identifier))
+      (call_exp_block
+        (par_exp
+          (var_exp
+            (identifier)))
+        (object_exp
+          (exp_field
+            (identifier))))
+      (block_exp
+        (exp_dec
+          (var_exp
+            (identifier)))))))
+
+==================
+Glued paren or bracket extends the head
+:error
+==================
+
+if c[1] else [];
+if (c)(e) else e2;
+
+---
+
+
+
+==================
+Extended head requires braced branches
+:error
+==================
+
+if f(1) 1 else 2;
+
+---
+
+
+
+==================
+Else-if chain from an extended head must stay braced
+:error
+==================
+
+if f(1) { 1 } else if (true) 2 else 3;
+
+---
+
+
+
+==================
+While with unparenthesized head
+==================
+
+while f(x) { a };
+while i < 3 { i += 1 };
+while (i > 0) i -= 1;
+
+---
+
+(source_file
+  (exp_dec
+    (while_exp
+      (call_exp_block
+        (var_exp
+          (identifier))
+        (par_exp
+          (var_exp
+            (identifier))))
+      (block_exp
+        (exp_dec
+          (var_exp
+            (identifier))))))
+  (exp_dec
+    (while_exp
+      (bin_exp_block
+        (var_exp
+          (identifier))
+        (rel_op)
+        (lit_exp
+          (int_literal)))
+      (block_exp
+        (exp_dec
+          (binassign_exp_object
+            (var_exp
+              (identifier))
+            (binassign_op)
+            (lit_exp
+              (int_literal)))))))
+  (exp_dec
+    (while_exp
+      (par_exp
+        (bin_exp_object
+          (var_exp
+            (identifier))
+          (rel_op)
+          (lit_exp
+            (int_literal))))
+      (binassign_exp_block
+        (var_exp
+          (identifier))
+        (binassign_op)
+        (lit_exp
+          (int_literal))))))
+
+==================
+For without parens
+==================
+
+for x in xs.vals() { sum += x };
+for (k, v) in [(1, 2)].values() { };
+for (x in xs) { };
+
+---
+
+(source_file
+  (exp_dec
+    (for_exp
+      (var_pat
+        (identifier))
+      (call_exp_block
+        (dot_exp_block
+          (var_exp
+            (identifier))
+          (identifier))
+        (par_exp))
+      (block_exp
+        (exp_dec
+          (binassign_exp_object
+            (var_exp
+              (identifier))
+            (binassign_op)
+            (var_exp
+              (identifier)))))))
+  (exp_dec
+    (for_exp
+      (tup_pat
+        (var_pat
+          (identifier))
+        (var_pat
+          (identifier)))
+      (call_exp_block
+        (dot_exp_block
+          (array_exp
+            (par_exp
+              (lit_exp
+                (int_literal))
+              (lit_exp
+                (int_literal))))
+          (identifier))
+        (par_exp))
+      (block_exp)))
+  (exp_dec
+    (for_exp
+      (var_pat
+        (identifier))
+      (var_exp
+        (identifier))
+      (block_exp))))
+
+==================
+Switch with unparenthesized scrutinee and no arm separators
+==================
+
+switch f(x) { case #ok(v) { store(v) } case #err(e) { throw e } };
+switch p.x { case 1 { } case _ { } };
+switch arr[1] { case 2 { } case _ { } };
+switch i + 1 { case 4 { } case _ { } };
+switch ({ x = 1 }) { case r { } };
+
+---
+
+(source_file
+  (exp_dec
+    (switch_exp
+      (call_exp_block
+        (var_exp
+          (identifier))
+        (par_exp
+          (var_exp
+            (identifier))))
+      (case
+        (tag_pat
+          (tag_identifier
+            (identifier))
+          (tup_pat
+            (var_pat
+              (identifier))))
+        (block_exp
+          (exp_dec
+            (call_exp_object
+              (var_exp
+                (identifier))
+              (par_exp
+                (var_exp
+                  (identifier)))))))
+      (case
+        (tag_pat
+          (tag_identifier
+            (identifier))
+          (tup_pat
+            (var_pat
+              (identifier))))
+        (block_exp
+          (exp_dec
+            (throw_exp
+              (var_exp
+                (identifier))))))))
+  (exp_dec
+    (switch_exp
+      (dot_exp_block
+        (var_exp
+          (identifier))
+        (identifier))
+      (case
+        (lit_pat
+          (int_literal))
+        (block_exp))
+      (case
+        (wild_pat)
+        (block_exp))))
+  (exp_dec
+    (switch_exp
+      (array_idx_exp_block
+        (var_exp
+          (identifier))
+        (lit_exp
+          (int_literal)))
+      (case
+        (lit_pat
+          (int_literal))
+        (block_exp))
+      (case
+        (wild_pat)
+        (block_exp))))
+  (exp_dec
+    (switch_exp
+      (bin_exp_block
+        (var_exp
+          (identifier))
+        (bin_op)
+        (lit_exp
+          (int_literal)))
+      (case
+        (lit_pat
+          (int_literal))
+        (block_exp))
+      (case
+        (wild_pat)
+        (block_exp))))
+  (exp_dec
+    (switch_exp
+      (par_exp
+        (object_exp
+          (exp_field
+            (identifier)
+            (lit_exp
+              (int_literal)))))
+      (case
+        (var_pat
+          (identifier))
+        (block_exp)))))
+
+==================
+Record literal as switch head needs parentheses
+:error
+==================
+
+switch { x = 1 } { case r { } };
+
+---
+
+
+
+==================
+Case patterns without parentheses
+==================
+
+switch o { case null 0; case ?n n + 1; };
+switch t { case #leaf 0 case #node(n) n };
+switch n { case -1 { "neg" } case 0 { "zero" } case _ { "other" } };
+switch (nn : ??Nat) { case (??n) { } case _ { } };
+switch o { case (? -1) { } case _ { } };
+
+---
+
+(source_file
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (lit_pat
+          (null_literal))
+        (lit_exp
+          (int_literal)))
+      (case
+        (quest_pat
+          (var_pat
+            (identifier)))
+        (bin_exp_block
+          (var_exp
+            (identifier))
+          (bin_op)
+          (lit_exp
+            (int_literal))))))
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (tag_pat
+          (tag_identifier
+            (identifier)))
+        (lit_exp
+          (int_literal)))
+      (case
+        (tag_pat
+          (tag_identifier
+            (identifier))
+          (tup_pat
+            (var_pat
+              (identifier))))
+        (var_exp
+          (identifier)))))
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (unop_pat
+          (unop)
+          (int_literal))
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (text_literal)))))
+      (case
+        (lit_pat
+          (int_literal))
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (text_literal)))))
+      (case
+        (wild_pat)
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (text_literal)))))))
+  (exp_dec
+    (switch_exp
+      (par_exp
+        (annot_exp_object
+          (var_exp
+            (identifier))
+          (quest_typ
+            (quest_typ
+              (path_typ
+                (typ_path
+                  (type_identifier)))))))
+      (case
+        (tup_pat
+          (quest_pat
+            (quest_pat
+              (var_pat
+                (identifier)))))
+        (block_exp))
+      (case
+        (wild_pat)
+        (block_exp))))
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (tup_pat
+          (quest_pat
+            (unop_pat
+              (unop)
+              (int_literal))))
+        (block_exp))
+      (case
+        (wild_pat)
+        (block_exp)))))
+
+==================
+Null coalescing right-hand side is expression position
+==================
+
+let r = opt ?? { x = 0 };
+let d = opt ?? do { log(); 0 };
+let c = a ?? b ?? 42;
+let nn : ??Nat = ??1;
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (var_exp
+        (identifier))
+      (object_exp
+        (exp_field
+          (identifier)
+          (lit_exp
+            (int_literal))))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (var_exp
+        (identifier))
+      (do_exp
+        (block_exp
+          (exp_dec
+            (call_exp_object
+              (var_exp
+                (identifier))
+              (par_exp)))
+          (exp_dec
+            (lit_exp
+              (int_literal)))))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (var_exp
+        (identifier))
+      (coalesce_exp_object
+        (var_exp
+          (identifier))
+        (lit_exp
+          (int_literal)))))
+  (let_dec
+    (annot_pat
+      (var_pat
+        (identifier))
+      (typ_annot
+        (quest_typ
+          (quest_typ
+            (path_typ
+              (typ_path
+                (type_identifier)))))))
+    (quest_exp
+      (quest_exp
+        (lit_exp
+          (int_literal))))))
+
+==================
+Prefix-shaped operators stay binary outside heads
+==================
+
+let t = "a" #"b";
+let n : Int = 10 -1 -2 * 2;
+let masked : Nat8 = 0xff ^0x0f;
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (lit_exp
+        (text_literal))
+      (bin_op)
+      (lit_exp
+        (text_literal))))
+  (let_dec
+    (annot_pat
+      (var_pat
+        (identifier))
+      (typ_annot
+        (path_typ
+          (typ_path
+            (type_identifier)))))
+    (bin_exp_object
+      (bin_exp_object
+        (bin_exp_object
+          (lit_exp
+            (int_literal))
+          (bin_op)
+          (lit_exp
+            (int_literal)))
+        (bin_op)
+        (lit_exp
+          (int_literal)))
+      (bin_op)
+      (lit_exp
+        (int_literal))))
+  (let_dec
+    (annot_pat
+      (var_pat
+        (identifier))
+      (typ_annot
+        (path_typ
+          (typ_path
+            (type_identifier)))))
+    (bin_exp_object
+      (lit_exp
+        (hex_literal))
+      (bin_op)
+      (lit_exp
+        (hex_literal)))))
+
+==================
+Glued sign operators are binary
+==================
+
+let a = n-1;
+let b = n+1;
+x := x-1.5;
+let d = 1e-10 - x;
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (var_exp
+        (identifier))
+      (bin_op)
+      (lit_exp
+        (int_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (var_exp
+        (identifier))
+      (bin_op)
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (assign_exp_object
+      (var_exp
+        (identifier))
+      (bin_exp_object
+        (var_exp
+          (identifier))
+        (bin_op)
+        (lit_exp
+          (float_literal)))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (lit_exp
+        (float_literal))
+      (bin_op)
+      (var_exp
+        (identifier)))))
+
+==================
+Unary operators bind looser than postfix
+==================
+
+let e = -n.toText();
+let g = -xs[0];
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (unop_exp
+      (unop)
+      (call_exp_object
+        (dot_exp_object
+          (var_exp
+            (identifier))
+          (identifier))
+        (par_exp))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (unop_exp
+      (unop)
+      (array_idx_exp_object
+        (var_exp
+          (identifier))
+        (lit_exp
+          (int_literal))))))
+
+==================
+A comment does not unglue a call in a head
+==================
+
+if f/*c*/(x) { };
+
+---
+
+(source_file
+  (exp_dec
+    (if_exp
+      (call_exp_block
+        (var_exp
+          (identifier))
+        (block_comment
+          (comment_text))
+        (par_exp
+          (var_exp
+            (identifier))))
+      (block_exp))))
+
+==================
+Signed literals are unary operators
+==================
+
+let m = -1;
+let f = -1.5e3;
+let h = -0xFF;
+let x = f(-1, -2);
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (unop_exp
+      (unop)
+      (lit_exp
+        (int_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (unop_exp
+      (unop)
+      (lit_exp
+        (float_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (unop_exp
+      (unop)
+      (lit_exp
+        (hex_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (call_exp_object
+      (var_exp
+        (identifier))
+      (par_exp
+        (unop_exp
+          (unop)
+          (lit_exp
+            (int_literal)))
+        (unop_exp
+          (unop)
+          (lit_exp
+            (int_literal)))))))
+
+==================
+Break with a full expression, await?
+==================
+
+let bk = label l : Nat loop { break l inc(41) };
+let y = await? f();
+let z = await ?x;
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (label_exp
+      (identifier)
+      (typ_annot
+        (path_typ
+          (typ_path
+            (type_identifier))))
+      (loop_exp
+        (block_exp
+          (exp_dec
+            (break_exp
+              (identifier)
+              (call_exp_object
+                (var_exp
+                  (identifier))
+                (par_exp
+                  (lit_exp
+                    (int_literal))))))))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (awaitquest_exp
+      (call_exp_block
+        (var_exp
+          (identifier))
+        (par_exp))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (await_exp
+      (quest_exp
+        (var_exp
+          (identifier))))))
+
+==================
+Unspaced ?? after an atomic head starts the branch
+==================
+
+let q = if (c) ??x else null;
+let r = opt ?? x;
+let s = opt ??
+  0;
+if opt ?? 0 == 0 { };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (quest_exp
+        (quest_exp
+          (var_exp
+            (identifier))))
+      (lit_exp
+        (null_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (var_exp
+        (identifier))
+      (var_exp
+        (identifier))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (var_exp
+        (identifier))
+      (lit_exp
+        (int_literal))))
+  (exp_dec
+    (if_exp
+      (coalesce_exp_block
+        (var_exp
+          (identifier))
+        (bin_exp_block
+          (lit_exp
+            (int_literal))
+          (rel_op)
+          (lit_exp
+            (int_literal))))
+      (block_exp))))
+
+==================
+Unspaced ?? is not the coalescing operator
+:error
+==================
+
+let q = opt ??x;
+
+---
+
+
+
+==================
+Break and return take a following while loop as their argument
+==================
+
+label l loop break l while (c) { };
+loop return while (c) { };
+
+---
+
+(source_file
+  (exp_dec
+    (label_exp
+      (identifier)
+      (loop_exp
+        (break_exp
+          (identifier)
+          (while_exp
+            (par_exp
+              (var_exp
+                (identifier)))
+            (block_exp))))))
+  (exp_dec
+    (loop_exp
+      (return_exp
+        (while_exp
+          (par_exp
+            (var_exp
+              (identifier)))
+          (block_exp))))))

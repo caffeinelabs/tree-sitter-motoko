@@ -85,7 +85,7 @@ Null coalescing
 
 let x = opt ?? 0;
 let y = a ?? b ?? c;
-let z = opt ?? { 1 + 2 };
+let z = opt ?? do { 1 + 2 };
 let w = ??opt;
 
 ---
@@ -105,7 +105,7 @@ let w = ??opt;
     (coalesce_exp_object
       value: (var_exp
         (identifier))
-      default: (coalesce_exp_block
+      default: (coalesce_exp_object
         value: (var_exp
           (identifier))
         default: (var_exp
@@ -116,14 +116,15 @@ let w = ??opt;
     (coalesce_exp_object
       value: (var_exp
         (identifier))
-      default: (block_exp
-        (exp_dec
-          (bin_exp_object
-            left: (lit_exp
-              (int_literal))
-            (bin_op)
-            right: (lit_exp
-              (int_literal)))))))
+      default: (do_exp
+        (block_exp
+          (exp_dec
+            (bin_exp_object
+              left: (lit_exp
+                (int_literal))
+              (bin_op)
+              right: (lit_exp
+                (int_literal))))))))
   (let_dec
     (var_pat
       (identifier))
