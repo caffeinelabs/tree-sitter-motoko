@@ -11,6 +11,15 @@ function comma_sep(rule) {
   return seq(repeat(seq(rule, ",")), optional(rule));
 }
 
+// The contents of `<...>` in type parameters and instantiations: a
+// plain list, or `system` followed by `, item` for each item.
+function system_or_comma_sep(rule) {
+  return choice(
+    comma_sep(rule),
+    seq("system", repeat(seq(",", rule))),
+  );
+}
+
 function semi_sep(rule) {
   return seq(repeat(seq(rule, ";")), optional(rule));
 }
@@ -1068,8 +1077,7 @@ export default grammar({
     inst: $ => seq(
       // NOTE(id: leading-ws-bug)
       token.immediate("<"),
-      optional("system"),
-      comma_sep($._typ),
+      system_or_comma_sep($._typ),
       ">",
     ),
 
@@ -1213,8 +1221,7 @@ export default grammar({
     ),
     typ_params: $ => seq(
       "<",
-      optional("system"),
-      comma_sep($.typ_bind),
+      system_or_comma_sep($.typ_bind),
       ">",
     ),
     typ_bind: $ => seq(
