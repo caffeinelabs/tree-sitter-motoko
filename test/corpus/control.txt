@@ -899,3 +899,76 @@ let y = await? f();
         (var_exp
           (identifier))
         (par_exp)))))
+
+==================
+Unspaced ?? after an atomic head starts the branch
+==================
+
+let q = if (c) ??x else null;
+let r = opt ?? x;
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (if_exp
+      (par_exp
+        (var_exp
+          (identifier)))
+      (quest_exp
+        (quest_exp
+          (var_exp
+            (identifier))))
+      (lit_exp
+        (null_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (var_exp
+        (identifier))
+      (var_exp
+        (identifier)))))
+
+==================
+Unspaced ?? is not the coalescing operator
+:error
+==================
+
+let q = opt ??x;
+
+---
+
+
+
+==================
+Break and return take a following while loop as their argument
+==================
+
+label l loop break l while (c) { };
+loop return while (c) { };
+
+---
+
+(source_file
+  (exp_dec
+    (label_exp
+      (identifier)
+      (loop_exp
+        (break_exp
+          (identifier)
+          (while_exp
+            (par_exp
+              (var_exp
+                (identifier)))
+            (block_exp))))))
+  (exp_dec
+    (loop_exp
+      (return_exp
+        (while_exp
+          (par_exp
+            (var_exp
+              (identifier)))
+          (block_exp))))))

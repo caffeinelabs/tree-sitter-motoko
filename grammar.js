@@ -346,7 +346,7 @@ function mk_binassign_exp($, b) {
 function mk_coalesce_exp($, b) {
   return prec.right(seq(
     field("value", _exp_bin($, b)),
-    "??",
+    $._coalesce_op,
     field("default", b == "head" ? $._head : $._exp_object),
   ))
 }
@@ -393,9 +393,9 @@ export default grammar({
     // to `-1` and `if k-1 > 0 { }` could not read `k-1` as a subtraction.
     float_literal: $ => token(choice(
       /[0-9_]+\.[0-9_]*/,
-      /[0-9_]+(:?\.[0-9]*)[eE]?[+-]?[0-9_]+/,
-      /0x[0-9a-fA-F_]+\.[0-9a-fA-F_]*?/,
-      /0x[0-9a-fA-F_]+(:?\.[0-9a-fA-F_]*)?[+-]?[pP][0-9]+/,
+      /[0-9_]+(\.[0-9_]*)?[eE][+-]?[0-9_]+/,
+      /0x[0-9a-fA-F_]+\.[0-9a-fA-F_]*/,
+      /0x[0-9a-fA-F_]+(\.[0-9a-fA-F_]*)?[pP][+-]?[0-9_]+/,
     )),
     int_literal: $ => /[0-9_]+/,
     hex_literal: $ => /0x[0-9a-fA-F_]+/,
@@ -509,6 +509,10 @@ export default grammar({
       "**",
       "**%",
     ),
+
+    // `??` is the coalescing operator only when whitespace follows, as in the compiler's lexer:
+    // `??x` is `?(?x)`, so `if (c) ??x else y` keeps its bare branch. The whitespace is part of the token.
+    _coalesce_op: $ => alias(token(/\?\?[ \t\r\n]/), "??"),
 
     // Imports
 
@@ -824,7 +828,7 @@ export default grammar({
     ),
 
     // TODO(def: prec.nonassoc): https://github.com/tree-sitter/tree-sitter/issues/761
-    return_exp: $ => prec.left(seq(
+    return_exp: $ => prec.right(seq(
       "return",
       optional($._exp_object),
     )),
@@ -868,7 +872,8 @@ export default grammar({
     ),
 
     // `break l e` takes any expression, like `return e`
-    break_exp: $ => prec.left(seq(
+    // TODO(id: prec.nonassoc)
+    break_exp: $ => prec.right(seq(
       "break",
       optional(seq(
         field("label", $.identifier),
