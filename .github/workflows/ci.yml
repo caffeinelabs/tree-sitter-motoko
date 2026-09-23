@@ -83,6 +83,11 @@ jobs:
       - run: just test
         working-directory: tree-sitter-motoko
 
+      # `just test` regenerates src/, so a stale commit (e.g. a version bump without `tree-sitter generate`) shows up here
+      - name: Generated sources match grammar.js and tree-sitter.json
+        run: git diff --exit-code -- src/
+        working-directory: tree-sitter-motoko
+
   packages:
     name: Parse production packages at source head
     runs-on: ubuntu-24.04
