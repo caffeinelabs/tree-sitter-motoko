@@ -73,3 +73,90 @@ Float
   (exp_dec
     (lit_exp
       (float_literal))))
+
+==================
+Dot on number literal
+==================
+
+5.toText();
+1_000.toText();
+5.e3;
+5._x;
+0..toText();
+1.;
+1.e+3;
+5. f; // moc: the float applied to `f`, see NOTE(id: num-dot)
+t.0.toText();
+1.5.toText();
+g(_.x);
+
+---
+
+(source_file
+  (exp_dec
+    (call_exp_object
+      (dot_exp_object
+        (lit_exp
+          (int_literal))
+        (identifier))
+      (par_exp)))
+  (exp_dec
+    (call_exp_object
+      (dot_exp_object
+        (lit_exp
+          (int_literal))
+        (identifier))
+      (par_exp)))
+  (exp_dec
+    (dot_exp_object
+      (lit_exp
+        (int_literal))
+      (identifier)))
+  (exp_dec
+    (dot_exp_object
+      (lit_exp
+        (int_literal))
+      (identifier)))
+  (exp_dec
+    (call_exp_object
+      (dot_exp_object
+        (lit_exp
+          (float_literal))
+        (identifier))
+      (par_exp)))
+  (exp_dec
+    (lit_exp
+      (float_literal)))
+  (exp_dec
+    (lit_exp
+      (float_literal)))
+  (exp_dec
+    (dot_exp_object
+      (lit_exp
+        (int_literal))
+      (identifier)))
+  (line_comment)
+  (exp_dec
+    (call_exp_object
+      (dot_exp_object
+        (proj_exp_object
+          (var_exp
+            (identifier))
+          (proj_identifier))
+        (identifier))
+      (par_exp)))
+  (exp_dec
+    (call_exp_object
+      (dot_exp_object
+        (lit_exp
+          (float_literal))
+        (identifier))
+      (par_exp)))
+  (exp_dec
+    (call_exp_object
+      (var_exp
+        (identifier))
+      (par_exp
+        (dot_exp_object
+          (wild_exp)
+          (identifier))))))

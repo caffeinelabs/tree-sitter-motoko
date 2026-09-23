@@ -132,3 +132,68 @@ let w = ??opt;
       (quest_exp
         (var_exp
           (identifier))))))
+
+==================
+System type parameters
+==================
+
+class C<system>() {};
+class D<system, T>(t : T) {};
+func f<system, T, U>() {};
+let d = D<system, Nat>(0);
+type F = <system, T>T -> ();
+
+---
+
+(source_file
+  (class_dec
+    (type_identifier)
+    (typ_params)
+    (tup_pat)
+    (obj_body))
+  (class_dec
+    (type_identifier)
+    (typ_params
+      (typ_bind
+        (type_identifier)))
+    (tup_pat
+      (annot_pat
+        (var_pat
+          (identifier))
+        (typ_annot
+          (path_typ
+            (typ_path
+              (type_identifier))))))
+    (obj_body))
+  (func_dec
+    (identifier)
+    (typ_params
+      (typ_bind
+        (type_identifier))
+      (typ_bind
+        (type_identifier)))
+    (tup_pat)
+    (block_exp))
+  (let_dec
+    (var_pat
+      (identifier))
+    (call_exp_object
+      (var_exp
+        (identifier))
+      (inst
+        (path_typ
+          (typ_path
+            (type_identifier))))
+      (par_exp
+        (lit_exp
+          (int_literal)))))
+  (typ_dec
+    (type_identifier)
+    (func_typ
+      (typ_params
+        (typ_bind
+          (type_identifier)))
+      (path_typ
+        (typ_path
+          (type_identifier)))
+      (tup_typ))))
