@@ -221,6 +221,7 @@ function mk_exp_post_ext($, b) {
     array_idx_exp($, b),
     proj_exp($, b),
     dot_exp($, b),
+    alias($._num_dot_exp, b == "object" ? $.dot_exp_object : $.dot_exp_block),
     call_exp($, b),
     bang_exp($, b),
     system_exp($, b),
@@ -391,12 +392,24 @@ export default grammar({
     // the compiler's lexer, `-1` is the unary operator applied to `1`
     // (`unop_exp` / `unop_pat`); otherwise `n -1` would lex as `n` applied
     // to `-1` and `if k-1 > 0 { }` could not read `k-1` as a subtraction.
-    float_literal: $ => token(choice(
-      /[0-9_]+\.[0-9_]*/,
-      /[0-9_]+(\.[0-9_]*)?[eE][+-]?[0-9_]+/,
-      /0x[0-9a-fA-F_]+\.[0-9a-fA-F_]*/,
-      /0x[0-9a-fA-F_]+(\.[0-9a-fA-F_]*)?[pP][+-]?[0-9_]+/,
-    )),
+    // NOTE(def: num-dot): as in the compiler's lexer, a decimal number
+    // glued to `.` and an identifier is a field access on the literal
+    // (`5.toText()`, even `5.e3`), not a float. Lacking lookahead, the
+    // bare-dot float `5.` is its own token, `_num_dot`, which
+    // `_num_dot_exp` can continue. The other forms need a digit or a
+    // signed exponent after the `.`, and all a leading digit, so `_.x`
+    // stays a field of `_`.
+    float_literal: $ => choice(
+      token(choice(
+        /[0-9][0-9_]*\.[0-9][0-9_]*/,
+        /[0-9][0-9_]*(\.[0-9][0-9_]*)?[eE][+-]?[0-9_]+/,
+        /[0-9][0-9_]*\.[eE][+-][0-9_]+/,
+        /0x[0-9a-fA-F_]+\.[0-9a-fA-F_]*/,
+        /0x[0-9a-fA-F_]+(\.[0-9a-fA-F_]*)?[pP][+-]?[0-9_]+/,
+      )),
+      $._num_dot,
+    ),
+    _num_dot: $ => /[0-9][0-9_]*\./,
     int_literal: $ => /[0-9_]+/,
     hex_literal: $ => /0x[0-9a-fA-F_]+/,
     bool_literal: $ => choice("true", "false"),
@@ -717,6 +730,17 @@ export default grammar({
     wild_exp: $ => "_",
 
     lit_exp: $ => $._literal,
+    // NOTE(id: num-dot): the number keeps its `.`, so `5.toText` reads
+    // `(dot_exp (lit_exp (int_literal "5.")) (identifier "toText"))`.
+    // Unlike the compiler, `5. f` is a field access too, not the float
+    // applied to `f` (always a type error): a `token.immediate`
+    // identifier conflicts with every keyword and quadruples the parse
+    // table.
+    _num_dot_exp: $ => seq(
+      alias($._num_dot_lit, $.lit_exp),
+      $.identifier,
+    ),
+    _num_dot_lit: $ => prec(1, alias($._num_dot, $.int_literal)),
     par_exp: $ => seq("(", comma_sep($._exp_object), ")"),
     var_exp: $ => $.identifier,
     // `if` has two coupled shapes. An atomic head keeps

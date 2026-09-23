@@ -193,28 +193,45 @@
       "value": "'\\\\''|'[^']*'"
     },
     "float_literal": {
-      "type": "TOKEN",
-      "content": {
-        "type": "CHOICE",
-        "members": [
-          {
-            "type": "PATTERN",
-            "value": "[0-9_]+\\.[0-9_]*"
-          },
-          {
-            "type": "PATTERN",
-            "value": "[0-9_]+(\\.[0-9_]*)?[eE][+-]?[0-9_]+"
-          },
-          {
-            "type": "PATTERN",
-            "value": "0x[0-9a-fA-F_]+\\.[0-9a-fA-F_]*"
-          },
-          {
-            "type": "PATTERN",
-            "value": "0x[0-9a-fA-F_]+(\\.[0-9a-fA-F_]*)?[pP][+-]?[0-9_]+"
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "PATTERN",
+                "value": "[0-9][0-9_]*\\.[0-9][0-9_]*"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[0-9][0-9_]*(\\.[0-9][0-9_]*)?[eE][+-]?[0-9_]+"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[0-9][0-9_]*\\.[eE][+-][0-9_]+"
+              },
+              {
+                "type": "PATTERN",
+                "value": "0x[0-9a-fA-F_]+\\.[0-9a-fA-F_]*"
+              },
+              {
+                "type": "PATTERN",
+                "value": "0x[0-9a-fA-F_]+(\\.[0-9a-fA-F_]*)?[pP][+-]?[0-9_]+"
+              }
+            ]
           }
-        ]
-      }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_num_dot"
+        }
+      ]
+    },
+    "_num_dot": {
+      "type": "PATTERN",
+      "value": "[0-9][0-9_]*\\."
     },
     "int_literal": {
       "type": "PATTERN",
@@ -1685,6 +1702,15 @@
               "name": "dot_exp_block"
             },
             {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_num_dot_exp"
+              },
+              "named": true,
+              "value": "dot_exp_block"
+            },
+            {
               "type": "SYMBOL",
               "name": "call_exp_block"
             },
@@ -1725,6 +1751,15 @@
             {
               "type": "SYMBOL",
               "name": "dot_exp_object"
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_num_dot_exp"
+              },
+              "named": true,
+              "value": "dot_exp_object"
             },
             {
               "type": "SYMBOL",
@@ -2004,6 +2039,15 @@
               "type": "ALIAS",
               "content": {
                 "type": "SYMBOL",
+                "name": "_num_dot_exp"
+              },
+              "named": true,
+              "value": "dot_exp_block"
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
                 "name": "call_exp_head"
               },
               "named": true,
@@ -2189,6 +2233,15 @@
               "content": {
                 "type": "SYMBOL",
                 "name": "dot_exp_head"
+              },
+              "named": true,
+              "value": "dot_exp_block"
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_num_dot_exp"
               },
               "named": true,
               "value": "dot_exp_block"
@@ -2662,6 +2715,37 @@
     "lit_exp": {
       "type": "SYMBOL",
       "name": "_literal"
+    },
+    "_num_dot_exp": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_num_dot_lit"
+          },
+          "named": true,
+          "value": "lit_exp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        }
+      ]
+    },
+    "_num_dot_lit": {
+      "type": "PREC",
+      "value": 1,
+      "content": {
+        "type": "ALIAS",
+        "content": {
+          "type": "SYMBOL",
+          "name": "_num_dot"
+        },
+        "named": true,
+        "value": "int_literal"
+      }
     },
     "par_exp": {
       "type": "SEQ",
