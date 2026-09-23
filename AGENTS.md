@@ -23,6 +23,9 @@ Requires Node 22, a C toolchain, and Rust (for the `dev/` corpus generator). The
 - Run tests: `just test` (runs `tree-sitter generate` then `tree-sitter test`)
 - Regenerate the test corpus, then test: `just test-generate`
 - Accept/update expected parse trees: `just accept`
+- Parse the production packages listed in `test/packages.json` at their default
+  branch head: `just packages` (clones under `target/packages/`; add a package
+  by adding a manifest entry with `repository` and an optional `path`)
 - Playground (build wasm + serve): `just play`
 - Node binding tests only: `npm test`
 
@@ -32,7 +35,7 @@ Indentation is enforced by `.editorconfig` (2 spaces for JS/JSON/TOML/YAML/SCM,
 
 ## CI (`.github/workflows/ci.yml`)
 
-Two jobs run on push to `main` and on every pull request:
+Three jobs run on push to `main` and on every pull request:
 
 - **bindings-in-sync**: runs `tree-sitter init --update` and fails if `git diff`
   shows any change. If you touch grammar metadata (e.g. `tree-sitter.json`),
@@ -40,6 +43,10 @@ Two jobs run on push to `main` and on every pull request:
 - **test**: checks out sibling repos `motoko` and `motoko-core` next to this one,
   then runs `just test-generate` and `just test`. The corpus generator in `dev/`
   expects `../motoko` and `../motoko-core` to exist as siblings.
+- **packages**: runs `just packages`, which shallow-clones every entry of
+  `test/packages.json` at its default branch head and parses all `.mo` files;
+  any `ERROR`/`MISSING` node fails the job. Only public repositories can be
+  listed, since the job runs with the default `GITHUB_TOKEN`.
 
 ## Layout of non-obvious directories
 
