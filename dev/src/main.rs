@@ -7,8 +7,7 @@ use camino::Utf8Path;
 use walkdir::WalkDir;
 
 /// Compiler tests that are genuine parse errors and so cannot become
-/// positive corpus tests. Files named `syntax*.mo` are excluded by prefix
-/// (see `is_excluded`); these are the rest.
+/// positive corpus tests, next to every `syntax*.mo` (see `is_fail_excluded`).
 const TEST_FAIL_EXCLUDES: [&str; 8] = [
     "par-bad-asyncstar.mo",
     "par-bad-nocall.mo",
@@ -20,8 +19,8 @@ const TEST_FAIL_EXCLUDES: [&str; 8] = [
     "verification-implies.mo",
 ];
 
-fn is_excluded(file_name: &str, excludes: &[&str]) -> bool {
-    excludes.contains(&file_name) || file_name.starts_with("syntax")
+fn is_fail_excluded(file_name: &str) -> bool {
+    TEST_FAIL_EXCLUDES.contains(&file_name) || file_name.starts_with("syntax")
 }
 
 fn main() -> Result<()> {
@@ -35,7 +34,7 @@ fn main() -> Result<()> {
     copy_test_cases(
         Utf8Path::new("../motoko/test/fail"),
         "fail",
-        &TEST_FAIL_EXCLUDES,
+        is_fail_excluded,
     )
     .unwrap();
 
@@ -43,26 +42,26 @@ fn main() -> Result<()> {
         Utf8Path::new("../motoko/test/run"),
         "run",
         // Contains a random Ctrl character
-        &["menhir-bug.mo"],
+        |f| f == "menhir-bug.mo",
     )
     .unwrap();
 
     copy_test_cases(
         Utf8Path::new("../motoko-core/src"),
         "core/src",
-        &[],
+        |_| false,
     )?;
 
     copy_test_cases(
         Utf8Path::new("../motoko-core/test"),
         "core/test",
-        &[],
+        |_| false,
     )?;
 
     copy_test_cases(
         Utf8Path::new("../motoko-core/bench"),
         "core/bench",
-        &[],
+        |_| false,
     )?;
     Ok(())
 }
@@ -70,7 +69,7 @@ fn main() -> Result<()> {
 fn copy_test_cases(
     mo_base: &Utf8Path,
     prefix: &str,
-    excludes: &[&str],
+    is_excluded: impl Fn(&str) -> bool,
 ) -> Result<()> {
     let test_dir =
         Utf8Path::new("test")
@@ -84,7 +83,7 @@ fn copy_test_cases(
             continue;
         }
         let file_name = path.file_name().unwrap();
-        if is_excluded(file_name, excludes) {
+        if is_excluded(file_name) {
             continue;
         }
         let test_name = path.strip_prefix(mo_base).unwrap();
