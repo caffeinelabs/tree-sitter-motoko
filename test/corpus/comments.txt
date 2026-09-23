@@ -1,0 +1,50 @@
+==================
+Block comments
+==================
+
+/**/
+/* a /* nested */ still comment */
+/* a // b /* nested after slashes */ still */
+/* see https://example.org */
+/* /// not a doc comment */
+/* multi
+// line
+*/
+let a = 1; // line /* not opened
+let b = 2 */* x */3;
+
+---
+
+(source_file
+  (block_comment)
+  (block_comment
+    (comment_text
+      (block_comment
+        (comment_text))))
+  (block_comment
+    (comment_text
+      (block_comment
+        (comment_text))))
+  (block_comment
+    (comment_text))
+  (block_comment
+    (comment_text))
+  (block_comment
+    (comment_text))
+  (let_dec
+    (var_pat
+      (identifier))
+    (lit_exp
+      (int_literal)))
+  (line_comment)
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (lit_exp
+        (int_literal))
+      (bin_op)
+      (block_comment
+        (comment_text))
+      (lit_exp
+        (int_literal)))))
