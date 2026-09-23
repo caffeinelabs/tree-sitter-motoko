@@ -87,4 +87,8 @@ jobs:
       - name: Move Wasm binaries to root
         run: mv -v prebuilds/*.wasm .
       - name: Publish
-        run: npm publish --provenance --ignore-scripts
+        # A pre-release (any version with a hyphen, e.g. 0.2.0-beta.1) must not move the `latest` dist-tag
+        run: |
+          tag=latest
+          case "$GITHUB_REF_NAME" in *-*) tag=next ;; esac
+          npm publish --provenance --ignore-scripts --tag "$tag"
