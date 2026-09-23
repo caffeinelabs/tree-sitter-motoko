@@ -7659,6 +7659,11 @@
     }
   },
   {
+    "type": "float_literal",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "for_exp",
     "named": true,
     "fields": {
@@ -16240,10 +16245,6 @@
   {
     "type": "flexible",
     "named": false
-  },
-  {
-    "type": "float_literal",
-    "named": true
   },
   {
     "type": "for",
