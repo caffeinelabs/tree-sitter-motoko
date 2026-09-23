@@ -5083,7 +5083,6 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
     case 66:
       ACCEPT_TOKEN(aux_sym_comment_text_token1);
       if (lookahead == '*') ADVANCE(63);
-      if (lookahead == '/') ADVANCE(61);
       END_STATE();
     case 67:
       ACCEPT_TOKEN(aux_sym_comment_text_token1);

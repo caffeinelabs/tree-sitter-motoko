@@ -384,8 +384,17 @@ export default grammar({
     // Comments
     doc_comment: $ => token(seq("///", /[^\n]*/)),
     line_comment: $ => token(seq("//", /[^\n]*/)),
-    block_comment: $ => seq("/*", optional($.comment_text), "*/"),
-    comment_text: $ => repeat1(/.|\n|\r/),
+    // NOTE(def: nested-comments): block comments nest as in the
+    // compiler: `block_comment` is an extra, so it may start inside
+    // `comment_text`. So may `//` and `///`, which would swallow the
+    // `*/`; the text characters outrank them, and `/*` and `*/` outrank
+    // the text characters.
+    block_comment: $ => seq(
+      token(prec(2, "/*")),
+      optional($.comment_text),
+      token(prec(2, "*/")),
+    ),
+    comment_text: $ => repeat1(token(prec(1, /.|\n|\r/))),
 
     // Identifiers
     identifier: $ => /[a-zA-Z_][a-zA-Z_0-9]*/,

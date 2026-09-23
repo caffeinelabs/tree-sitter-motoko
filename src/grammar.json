@@ -110,8 +110,15 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "/*"
+          "type": "TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": 2,
+            "content": {
+              "type": "STRING",
+              "value": "/*"
+            }
+          }
         },
         {
           "type": "CHOICE",
@@ -126,16 +133,30 @@
           ]
         },
         {
-          "type": "STRING",
-          "value": "*/"
+          "type": "TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": 2,
+            "content": {
+              "type": "STRING",
+              "value": "*/"
+            }
+          }
         }
       ]
     },
     "comment_text": {
       "type": "REPEAT1",
       "content": {
-        "type": "PATTERN",
-        "value": ".|\\n|\\r"
+        "type": "TOKEN",
+        "content": {
+          "type": "PREC",
+          "value": 1,
+          "content": {
+            "type": "PATTERN",
+            "value": ".|\\n|\\r"
+          }
+        }
       }
     },
     "identifier": {
