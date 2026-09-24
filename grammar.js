@@ -503,17 +503,11 @@ export default grammar({
     rel_op: $ => choice(
       "==",
       "!=",
-      // NOTE(def: leading-ws-bug): The lexer in the compiler
-      // distinguishes these operators from type-parameter
-      // instantiations by requiring that they are surrounded with
-      // whitespace. While tree-sitter let's us do that with " <" and
-      // " >", it triggers the bug in
-      // https://github.com/tree-sitter/tree-sitter/issues/4091. So
-      // instead we mark the `<` tokens for instantiations as
-      // `token.immediate`, meaning they they must not be preceeded by
-      // whitespace instead.
       ">",
-      "<",
+      // NOTE(def: spaced-lt): as in the compiler's lexer, `<` compares only with whitespace on both sides and opens
+      // type arguments otherwise (`f <T>(x)`, `List <T>`, `f< T >(x)`). The token carries the whitespace after it;
+      // `_type_args_open` covers every other spacing, and its glued form wins the tie for `f< T >`.
+      alias(token(/<[ \t\r\n]/), "<"),
       "<=",
       ">=",
       "<<",
@@ -1083,9 +1077,11 @@ export default grammar({
       $._exp_nest,
     ),
 
+    // NOTE(id: spaced-lt)
+    _type_args_open: $ => choice("<", alias(token.immediate(/<[ \t\r\n]/), "<")),
+
     inst: $ => seq(
-      // NOTE(id: leading-ws-bug)
-      token.immediate("<"),
+      $._type_args_open,
       system_or_comma_sep($._typ),
       ">",
     ),
@@ -1150,8 +1146,7 @@ export default grammar({
     path_typ: $ => seq(
       $.typ_path,
       optional(seq(
-        // NOTE(id: leading-ws-bug)
-        token.immediate("<"),
+        $._type_args_open,
         comma_sep($._typ),
         ">",
       )),

@@ -260,3 +260,100 @@ type T = <T, A <: B> ?N -> A;
       (path_typ
         (typ_path
           (type_identifier))))))
+
+==================
+A spaced < opens type arguments unless whitespace follows it
+==================
+
+let l : List <Nat> = null;
+func h(l : List <Nat>) : ?List <Nat> = ?l;
+let y = f <Nat>(1);
+let z = f< Nat >(1);
+let c = a < b;
+
+---
+
+(source_file
+  (let_dec
+    (annot_pat
+      (var_pat
+        (identifier))
+      (typ_annot
+        (path_typ
+          (typ_path
+            (type_identifier))
+          (path_typ
+            (typ_path
+              (type_identifier))))))
+    (lit_exp
+      (null_literal)))
+  (func_dec
+    (identifier)
+    (tup_pat
+      (annot_pat
+        (var_pat
+          (identifier))
+        (typ_annot
+          (path_typ
+            (typ_path
+              (type_identifier))
+            (path_typ
+              (typ_path
+                (type_identifier)))))))
+    (typ_annot
+      (quest_typ
+        (path_typ
+          (typ_path
+            (type_identifier))
+          (path_typ
+            (typ_path
+              (type_identifier))))))
+    (quest_exp
+      (var_exp
+        (identifier))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (call_exp_object
+      (var_exp
+        (identifier))
+      (inst
+        (path_typ
+          (typ_path
+            (type_identifier))))
+      (par_exp
+        (lit_exp
+          (int_literal)))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (call_exp_object
+      (var_exp
+        (identifier))
+      (inst
+        (path_typ
+          (typ_path
+            (type_identifier))))
+      (par_exp
+        (lit_exp
+          (int_literal)))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (var_exp
+        (identifier))
+      (rel_op)
+      (var_exp
+        (identifier)))))
+
+==================
+A < with whitespace before but not after is not a comparison
+:error
+==================
+
+let c = a <b;
+
+---
+
+
