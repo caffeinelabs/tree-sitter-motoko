@@ -1,5 +1,5 @@
 # Pinned so a new clippy lint can't break unrelated PRs and a release rebuilds from its tag; Dependabot bumps it.
 [toolchain]
-channel = "1.95.0"
+channel = "1.98.1"
 components = ["rustfmt", "clippy"]
 profile = "minimal"
