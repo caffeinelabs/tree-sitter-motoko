@@ -1,0 +1,15 @@
+---
+source: tests/format.rs
+expression: out
+input_file: tests/format/imports/comment-in-section.mo
+---
+// header
+import A "A";
+// import B "B";
+import C "C";
+actor {};
+
+// note
+object Tail {
+  public let x = 1;
+};

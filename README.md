@@ -1,6 +1,6 @@
 # tree-sitter-motoko
 
-A tree-sitter grammar for the Motoko programming language.
+A tree-sitter grammar for the Motoko programming language, and [`mo-fmt`](mo-fmt), the Motoko formatter built on it.
 
 ## Why does this exist?
 

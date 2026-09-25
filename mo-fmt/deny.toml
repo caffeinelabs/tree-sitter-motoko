@@ -1,0 +1,21 @@
+# `cargo deny check`: known vulnerabilities and unmaintained crates, licenses, and where crates come from.
+
+[advisories]
+unmaintained = "all"
+yanked = "deny"
+
+[licenses]
+allow = ["Apache-2.0", "MIT", "Unicode-3.0", "Unlicense"]
+
+[licenses.private]
+ignore = true
+
+[bans]
+# A duplicate is worth a look, but routine dependency bumps shouldn't fail on one.
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

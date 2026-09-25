@@ -1,0 +1,108 @@
+name: Release mo-fmt
+
+# A `mo-fmt-vX.Y.Z` tag releases the formatter; the grammar's own `vX.Y.Z` tags go to publish.yml.
+# Pull requests touching the formatter run the builds too, so a broken release shows up before the tag.
+on:
+  push:
+    tags: ["mo-fmt-v*"]
+  pull_request:
+    paths: ["mo-fmt/**", ".github/workflows/mo-fmt-release.yml"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Static musl binaries run on any Linux, whatever its glibc.
+          - { os: ubuntu-24.04, target: x86_64-unknown-linux-musl }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl }
+          - { os: macos-15, target: aarch64-apple-darwin }
+          - { os: macos-15-intel, target: x86_64-apple-darwin }
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Tag matches the crate version
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: mo-fmt
+        run: test "mo-fmt-v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')" = "$GITHUB_REF_NAME"
+
+      - name: Toolchain
+        working-directory: mo-fmt
+        run: |
+          rustup toolchain install
+          rustup target add ${{ matrix.target }}
+          if [[ ${{ matrix.target }} == *-musl ]]; then sudo apt-get install -y --no-install-recommends musl-tools; fi
+
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+        working-directory: mo-fmt
+
+      - name: Smoke test
+        working-directory: mo-fmt
+        run: |
+          bin=target/${{ matrix.target }}/release/mo-fmt
+          # x86_64 musl binaries are static PIEs.
+          if [[ ${{ matrix.target }} == *-musl ]]; then file "$bin" | grep -Eq 'statically linked|static-pie linked'; fi
+          printf 'let x = f(1,2);\n' > /tmp/a.mo
+          if "$bin" --check /tmp/a.mo; then exit 1; fi
+          "$bin" /tmp/a.mo
+          test "$(cat /tmp/a.mo)" = 'let x = f(1, 2);'
+          "$bin" --check /tmp/a.mo
+
+      - name: Package
+        # One top-level directory, as the mops toolchain expects of every tool it downloads.
+        run: |
+          dir=mo-fmt-${{ matrix.target }}
+          mkdir "$dir" && cp mo-fmt/target/${{ matrix.target }}/release/mo-fmt LICENSE "$dir/"
+          tar -cJf "$dir.tar.xz" "$dir"
+
+      - name: Attest the build
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: mo-fmt-${{ matrix.target }}.tar.xz
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: mo-fmt-${{ matrix.target }}
+          path: mo-fmt-${{ matrix.target }}.tar.xz
+          retention-days: 2
+
+  release:
+    name: GitHub release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: mo-fmt-*
+          merge-multiple: true
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha256sum mo-fmt-*.tar.xz > sha256sums.txt
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --latest=false \
+            --title "mo-fmt ${GITHUB_REF_NAME#mo-fmt-v}" \
+            --notes "The Motoko formatter. Unpack the archive for your platform and run \`mo-fmt --help\`. Each archive carries a build provenance attestation: \`gh attestation verify <archive> --repo $GITHUB_REPOSITORY\`." \
+            mo-fmt-*.tar.xz sha256sums.txt

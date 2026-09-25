@@ -1,0 +1,38 @@
+[package]
+name = "mo-fmt"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.90"
+description = "A formatter for the Motoko programming language"
+repository = "https://github.com/caffeinelabs/tree-sitter-motoko"
+license = "Apache-2.0"
+publish = false
+
+# Its own workspace root, whatever the generated Cargo.toml above it declares.
+[workspace]
+
+[dependencies]
+tree-sitter = "0.26"
+tree-sitter-motoko = { path = ".." }
+clap = { version = "4.5", features = ["derive"] }
+ignore = "0.4"
+serde = { version = "1", features = ["derive"] }
+toml = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[dev-dependencies]
+insta = { version = "1.43", features = ["glob"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+
+# The parser is C compiled by the grammar and tree-sitter crates; unoptimised, it dominates the test run.
+[profile.dev.package.tree-sitter]
+opt-level = 3
+
+[profile.dev.package.tree-sitter-motoko]
+opt-level = 3

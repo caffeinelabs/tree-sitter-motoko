@@ -1,0 +1,29 @@
+version: 2
+# The generated Cargo.toml and package.json at the root are left to `tree-sitter init --update`.
+updates:
+  - package-ecosystem: cargo
+    directory: /mo-fmt
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      mo-fmt:
+        patterns: ["*"]
+
+  - package-ecosystem: rust-toolchain
+    directory: /mo-fmt
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]

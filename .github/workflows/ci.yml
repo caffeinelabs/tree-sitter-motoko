@@ -105,11 +105,60 @@ jobs:
 
       - run: just packages
 
+  mo-fmt:
+    name: mo-fmt
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          path: tree-sitter-motoko
+
+      # Pinned, since the corpus test requires motoko-core to be formatted already.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: caffeinelabs/motoko
+          ref: dfa3a92abca9994512434f9701175e7e499fb0df
+          path: motoko
+          sparse-checkout: test
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: caffeinelabs/motoko-core
+          ref: 96a8e1f76f44088709ef38e426c65d1fe829ee07
+          path: motoko-core
+
+      # mo-fmt/rust-toolchain.toml pins the toolchain; 1.90 is the `rust-version` it must also build on.
+      - run: rustup toolchain install && rustup toolchain install 1.90 --profile minimal
+        working-directory: tree-sitter-motoko/mo-fmt
+
+      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: tree-sitter-motoko/mo-fmt
+
+      - run: cargo fmt --check
+        working-directory: tree-sitter-motoko/mo-fmt
+
+      - run: cargo +1.90 check --all-targets --locked
+        working-directory: tree-sitter-motoko/mo-fmt
+
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
+        with:
+          manifest-path: tree-sitter-motoko/mo-fmt/Cargo.toml
+
+      - run: cargo clippy --all-targets --locked -- -D warnings
+        working-directory: tree-sitter-motoko/mo-fmt
+
+      - run: cargo test --locked
+        working-directory: tree-sitter-motoko/mo-fmt
+        env:
+          MOTOKO_CORPUS_REQUIRED: 1
+
   required:
     name: ci:required
     runs-on: ubuntu-24.04
     if: always()
-    needs: [bindings-in-sync, test, packages]
+    needs: [bindings-in-sync, test, packages, mo-fmt]
     steps:
       - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1
