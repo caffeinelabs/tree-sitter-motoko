@@ -1,6 +1,7 @@
 # AGENTS.md
 
 A [tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammar for the Motoko programming language.
+`mo-fmt/` holds the Motoko formatter built on it; its README covers building, testing and releasing it.
 
 ## Source of truth
 
@@ -38,7 +39,7 @@ Indentation is enforced by `.editorconfig` (2 spaces for JS/JSON/TOML/YAML/SCM,
 
 ## CI (`.github/workflows/ci.yml`)
 
-Three jobs run on push to `main` and on every pull request:
+Four jobs run on push to `main` and on every pull request:
 
 - **bindings-in-sync**: runs `tree-sitter init --update` and fails if `git diff`
   shows any change. If you touch grammar metadata (e.g. `tree-sitter.json`),
@@ -51,6 +52,8 @@ Three jobs run on push to `main` and on every pull request:
   `test/packages.json` at its default branch head and parses all `.mo` files;
   any `ERROR`/`MISSING` node fails the job. Only public repositories can be
   listed, since the job runs with the default `GITHUB_TOKEN`.
+- **mo-fmt**: `cargo fmt --check`, clippy and `cargo test` in `mo-fmt/`, including the
+  corpus test against `motoko` and `motoko-core` pinned to fixed revisions.
 
 ## Layout of non-obvious directories
 
@@ -59,3 +62,6 @@ Three jobs run on push to `main` and on every pull request:
 - `test/corpus/` — tree-sitter test cases. `test/corpus/generated/` is produced by
   `dev/` and is git-ignored; do not commit or hand-edit it.
 - `bindings/` — generated per-language bindings (c, go, node, python, rust, swift).
+- `mo-fmt/` — the formatter, a Rust crate with its own `Cargo.lock` that uses the grammar by path.
+  It releases on `mo-fmt-v*` tags (`.github/workflows/mo-fmt-release.yml`), separately from the
+  grammar's `v*` tags (`publish.yml`).

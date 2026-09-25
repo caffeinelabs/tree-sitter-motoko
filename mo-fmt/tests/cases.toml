@@ -1,0 +1,947 @@
+# Input and expected output for each case the TypeScript formatter this was ported from was tested with.
+# Every case is also checked to be a fixed point, and a moc2 case to be a fixed point of preserve.
+
+[[case]]
+why = "spacing: an atomic head stays bare, since wrapping `if c` would be a gratuitous change"
+source = 'func f(c : Bool) : Nat { if c { 1 } else { 2 } }'
+output = '''
+func f(c : Bool) : Nat { if c { 1 } else { 2 } }
+'''
+
+[[case]]
+why = "spacing: an already parenthesised compound head is kept, not double-wrapped, and `preserve` doesn't unwrap it either"
+source = '''
+func g(x : Nat) : Nat { 1 };
+func f(x : Nat) : Nat { if (g(x)) { 1 } else { 2 } }'''
+output = '''
+func g(x : Nat) : Nat { 1 };
+func f(x : Nat) : Nat { if (g(x)) { 1 } else { 2 } }
+'''
+
+[[case]]
+why = "spacing: a bare indexed head is kept in `preserve` even though moc 1.16 rejects it; tidying it is `moc2`'s job"
+source = 'func f(xs : [Nat]) : Nat { if xs[0] { 1 } else { 2 } }'
+output = '''
+func f(xs : [Nat]) : Nat { if xs[0] { 1 } else { 2 } }
+'''
+
+[[case]]
+why = "spacing: a unary branch glued to its head is kept verbatim in `preserve`, although moc 2.0 rejects it; only `moc2` may add the space"
+source = 'func f(c : Bool) : Nat { if (c)-1 else 2 }'
+output = '''
+func f(c : Bool) : Nat { if (c)-1 else 2 }
+'''
+
+[[case]]
+why = "spacing: a unary branch spaced from its head is the one spelling every moc version accepts, and is kept"
+source = 'func f(c : Bool) : Nat { if (c) -1 else 2 }'
+output = '''
+func f(c : Bool) : Nat { if (c) -1 else 2 }
+'''
+
+[[case]]
+why = "spacing: a variant branch spaced from its head keeps its space, which is load-bearing"
+source = 'func f(c : Bool) : any { if (c) #less else #greater }'
+output = '''
+func f(c : Bool) : any { if (c) #less else #greater }
+'''
+
+[[case]]
+why = "spacing: a comparison is spaced on both sides, so its `>` can't re-lex as a closing angle"
+source = 'let b = x < y'
+output = '''
+let b = x < y
+'''
+
+[[case]]
+why = "spacing: an instantiating `<` stays glued to the callee; spaced, `f <Nat>(1)` reads as a comparison"
+source = 'let x = f<Nat>(1)'
+output = '''
+let x = f<Nat>(1)
+'''
+
+[[case]]
+why = "spacing: in a broken type-argument list the `<` stays glued to `f` and the `>` to `Nat`"
+source = '''
+let x = f<
+  Nat>(1)'''
+output = '''
+let x = f<
+  Nat>(1)
+'''
+
+[[case]]
+why = "spacing: a nested close is one contiguous `>>`, since `> >` would end the outer list early"
+source = 'type T = List<List<Nat>>'
+output = '''
+type T = List<List<Nat>>
+'''
+
+[[case]]
+why = "spacing: a broken angle list glues its close to the last item, since a `>` on its own line doesn't parse"
+source = '''
+type F<
+  Alpha,
+  Beta,
+  Gamma> = Alpha;'''
+output = '''
+type F<
+  Alpha,
+  Beta,
+  Gamma> = Alpha;
+'''
+
+[[case]]
+why = "spacing: an item that ends a nested angle list still leaves the outer `>>` contiguous"
+source = '''
+func f<
+  Alpha,
+  Beta <: List<Nat>>(
+  a : Alpha
+) : Beta = a;'''
+output = '''
+func f<
+  Alpha,
+  Beta <: List<Nat>>(
+  a : Alpha
+) : Beta = a;
+'''
+
+[[case]]
+why = "spacing: `??` is spaced and never broken, so its leading `?` can't become a second option type"
+source = 'let x = a ?? b'
+output = '''
+let x = a ?? b
+'''
+
+[[case]]
+why = "spacing: the space in `? ?Nat` is meaningful and is kept"
+source = 'let x : ? ?Nat = null'
+output = '''
+let x : ? ?Nat = null
+'''
+
+[[case]]
+why = "spacing: a tight `??Nat` type stays tight, and isn't respaced into an operator"
+source = 'let x : ??Nat = null'
+output = '''
+let x : ??Nat = null
+'''
+
+[[case]]
+why = "spacing: a number glued to `.` stays glued, since `5. toText()` lexes a Float; the guard can't see this, so the printer must"
+source = 'let s = 5.toText()'
+output = '''
+let s = 5.toText()
+'''
+
+[[case]]
+why = "spacing: `#` stays glued to its variant tag"
+source = 'let v = #ok(1)'
+output = '''
+let v = #ok(1)
+'''
+
+[[case]]
+why = "spacing: a concatenating `#` is spaced on both sides, the opposite of a variant tag"
+source = 'let s = "a" # "b"'
+output = '''
+let s = "a" # "b"
+'''
+
+[[case]]
+why = "spacing: `:=` is one token, so it is never split"
+source = 'func f() { a := b }'
+output = '''
+func f() { a := b }
+'''
+
+[[case]]
+why = "spacing: `**` is one token, so it is never split"
+source = 'func f() { let x = a ** b }'
+output = '''
+func f() { let x = a ** b }
+'''
+
+[[case]]
+why = "spacing: a wrapping operator such as `+%` is one token, so it is never split"
+source = 'func f() { let x = a +% b }'
+output = '''
+func f() { let x = a +% b }
+'''
+
+[[case]]
+why = "spacing: a chain broken at a shift keeps `>>` whole, since its two `>` come from one token"
+source = '''
+func f() {
+  let x = aaaaaaaa >>
+    bbbbbbbb
+}'''
+output = '''
+func f() {
+  let x = aaaaaaaa >>
+    bbbbbbbb
+}
+'''
+
+[[case]]
+why = "comments: a comment before a glued `>` stays where it is, since moc rejects whitespace before that `>` even with a comment there"
+source = '''
+type F<
+  Alpha,
+  Beta /*c*/> = Alpha;'''
+output = '''
+type F<
+  Alpha,
+  Beta /*c*/> = Alpha;
+'''
+
+[[case]]
+why = "comments: an own-line comment before a `>` stays on its own line"
+source = '''
+type F<Alpha, Beta
+  /*c*/> = Alpha;'''
+output = '''
+type F<
+  Alpha,
+  Beta
+  /*c*/> = Alpha;
+'''
+
+[[case]]
+why = "moc2: if branches are braced"
+syntax = "moc2"
+source = '''
+if (c) x else y;
+'''
+output = '''
+if c { x } else { y };
+'''
+
+[[case]]
+why = "moc2: an else-if chain stays a chain"
+syntax = "moc2"
+source = '''
+let a = if (c) 1 else if (d) 2 else { 3 };
+'''
+output = '''
+let a = if c { 1 } else if d { 2 } else { 3 };
+'''
+
+[[case]]
+why = "moc2: while"
+syntax = "moc2"
+source = '''
+while (c) f();
+'''
+output = '''
+while c { f() };
+'''
+
+[[case]]
+why = "moc2: for"
+syntax = "moc2"
+source = '''
+for (x in xs.values()) f(x);
+'''
+output = '''
+for x in xs.values() { f(x) };
+'''
+
+[[case]]
+why = "moc2: loop keeps its trailing condition"
+syntax = "moc2"
+source = '''
+loop f() while (c);
+'''
+output = '''
+loop { f() } while (c);
+'''
+
+[[case]]
+why = "moc2: catch"
+syntax = "moc2"
+source = '''
+try f() catch e g();
+'''
+output = '''
+try f() catch e { g() };
+'''
+
+[[case]]
+why = "moc2: case arms, separators and patterns"
+syntax = "moc2"
+source = '''
+switch (x) { case (null) 0; case (?y) { y }; case (#t z) z; case (#u) 1 };
+'''
+output = '''
+switch x { case null { 0 } case ?y { y } case #t(z) { z } case #u { 1 } };
+'''
+
+[[case]]
+why = "moc2: heads with no hazard outside nested parens"
+syntax = "moc2"
+source = '''
+if (x != #a and not (p y)) {};
+switch (f(a, #b, -1)) {};
+if (i +% 1 < n) {};
+if (s != "{" and any(func() { t })) {};
+if (a-1 > 0) {};
+'''
+output = '''
+if x != #a and not (p y) {};
+switch f(a, #b, -1) {};
+if i +% 1 < n {};
+if s != "{" and any(func() { t }) {};
+if a - 1 > 0 {};
+'''
+
+[[case]]
+why = "moc2: spaced calls and indexes in heads are glued"
+syntax = "moc2"
+source = '''
+if (not f x y) {};
+while (g (x) and a [i]) {};
+for (x in h<T> xs) {};
+'''
+output = '''
+if not f(x)(y) {};
+while g(x) and a[i] {};
+for x in h<T>(xs) {};
+'''
+
+[[case]]
+why = "moc2: keeps a tuple head as written"
+syntax = "moc2"
+source = '''
+switch (a, b) { case (_, _) {} };
+'''
+output = '''
+switch (a, b) { case (_, _) {} };
+'''
+
+[[case]]
+why = "moc2: keeps a record in the head as written"
+syntax = "moc2"
+source = '''
+if ({ a = 1 }.a == 1) { 1 } else { 2 };
+'''
+output = '''
+if ({ a = 1 }.a == 1) { 1 } else { 2 };
+'''
+
+[[case]]
+why = "moc2: keeps a juxtaposed call in a tuple head as written"
+syntax = "moc2"
+source = '''
+switch (f x, y) {};
+'''
+output = '''
+switch (f x, y) {};
+'''
+
+[[case]]
+why = "moc2: keeps a prefix-shaped operator in the head as written"
+syntax = "moc2"
+source = '''
+if (a -1) { 1 } else { 2 };
+'''
+output = '''
+if (a -1) { 1 } else { 2 };
+'''
+
+[[case]]
+why = "moc2: keeps an await in the head as written"
+syntax = "moc2"
+source = '''
+if (await f()) { 1 } else { 2 };
+'''
+output = '''
+if (await f()) { 1 } else { 2 };
+'''
+
+[[case]]
+why = "moc2: keeps a head spanning lines as written"
+syntax = "moc2"
+source = '''
+if (
+  a or
+  b
+) {};
+'''
+output = '''
+if (
+  a or
+  b
+) {};
+'''
+
+[[case]]
+why = "moc2: keeps a case pattern spanning lines as written"
+syntax = "moc2"
+source = '''
+switch x {
+  case (?(
+    a,
+    b
+  )) {}
+};
+'''
+output = '''
+switch x {
+  case (?(
+    a,
+    b
+  )) {}
+};
+'''
+
+[[case]]
+why = "moc2: keeps an or-pattern as written"
+syntax = "moc2"
+source = '''
+switch x { case (#a or #b) { 1 } };
+'''
+output = '''
+switch x { case (#a or #b) { 1 } };
+'''
+
+[[case]]
+why = "moc2: keeps a function body `= e` as written"
+syntax = "moc2"
+source = '''
+func f() : Nat = 1;
+'''
+output = '''
+func f() : Nat = 1;
+'''
+
+[[case]]
+why = "moc2: if branches are braced: idempotent, and a fixed point of preserve"
+source = '''
+if c { x } else { y };
+'''
+output = '''
+if c { x } else { y };
+'''
+
+[[case]]
+why = "moc2: an else-if chain stays a chain: idempotent, and a fixed point of preserve"
+source = '''
+let a = if c { 1 } else if d { 2 } else { 3 };
+'''
+output = '''
+let a = if c { 1 } else if d { 2 } else { 3 };
+'''
+
+[[case]]
+why = "moc2: while: idempotent, and a fixed point of preserve"
+source = '''
+while c { f() };
+'''
+output = '''
+while c { f() };
+'''
+
+[[case]]
+why = "moc2: for: idempotent, and a fixed point of preserve"
+source = '''
+for x in xs.values() { f(x) };
+'''
+output = '''
+for x in xs.values() { f(x) };
+'''
+
+[[case]]
+why = "moc2: loop keeps its trailing condition: idempotent, and a fixed point of preserve"
+source = '''
+loop { f() } while (c);
+'''
+output = '''
+loop { f() } while (c);
+'''
+
+[[case]]
+why = "moc2: catch: idempotent, and a fixed point of preserve"
+source = '''
+try f() catch e { g() };
+'''
+output = '''
+try f() catch e { g() };
+'''
+
+[[case]]
+why = "moc2: case arms, separators and patterns: idempotent, and a fixed point of preserve"
+source = '''
+switch x { case null { 0 } case ?y { y } case #t(z) { z } case #u { 1 } };
+'''
+output = '''
+switch x { case null { 0 } case ?y { y } case #t(z) { z } case #u { 1 } };
+'''
+
+[[case]]
+why = "moc2: heads with no hazard outside nested parens: idempotent, and a fixed point of preserve"
+source = '''
+if x != #a and not (p y) {};
+switch f(a, #b, -1) {};
+if i +% 1 < n {};
+if s != "{" and any(func() { t }) {};
+if a - 1 > 0 {};
+'''
+output = '''
+if x != #a and not (p y) {};
+switch f(a, #b, -1) {};
+if i +% 1 < n {};
+if s != "{" and any(func() { t }) {};
+if a - 1 > 0 {};
+'''
+
+[[case]]
+why = "moc2: spaced calls and indexes in heads are glued: idempotent, and a fixed point of preserve"
+source = '''
+if not f(x)(y) {};
+while g(x) and a[i] {};
+for x in h<T>(xs) {};
+'''
+output = '''
+if not f(x)(y) {};
+while g(x) and a[i] {};
+for x in h<T>(xs) {};
+'''
+
+[[case]]
+why = "moc2: preserve leaves legacy syntax alone"
+source = '''
+if (c) x else y;
+'''
+output = '''
+if (c) x else y;
+'''
+
+[[case]]
+why = "preserve: layout: a comma-separated list is re-spaced but neither separator nor paren is touched"
+source = 'let t = (1,2)'
+output = '''
+let t = (1, 2)
+'''
+
+[[case]]
+why = "preserve: layout: a trailing comma is meaning-bearing and so is reproduced, not normalised away"
+source = 'let t = (1,)'
+output = '''
+let t = (1,)
+'''
+
+[[case]]
+why = "preserve: layout: a redundant paren is left alone — `preserve` does not unwrap, that is a moc2 edit"
+source = 'let t = (1)'
+output = '''
+let t = (1)
+'''
+
+[[case]]
+why = "preserve: layout: an array literal is a comma-separated list like a tuple"
+source = 'let a = [1,2,3]'
+output = '''
+let a = [1, 2, 3]
+'''
+
+[[case]]
+why = "preserve: layout: the array family honours a trailing comma too"
+source = 'let a = [1,]'
+output = '''
+let a = [1,]
+'''
+
+[[case]]
+why = "preserve: layout: a broken record stays broken, with the source’s trailing `;`"
+source = '''
+let r = {
+  a = 1;
+  b = 2;
+}'''
+output = '''
+let r = {
+  a = 1;
+  b = 2;
+}
+'''
+
+[[case]]
+why = "preserve: layout: a broken record without a trailing `;` stays without one"
+source = '''
+let r = {
+  a = 1
+}'''
+output = '''
+let r = {
+  a = 1
+}
+'''
+
+[[case]]
+why = "preserve: layout: a block’s inter-declaration `;` is the source’s, and its absence after `x` too"
+source = 'func f() : Nat { let x = 1; x }'
+output = '''
+func f() : Nat { let x = 1; x }
+'''
+
+[[case]]
+why = "preserve: layout: a block that ends in `;` keeps it — the one place `semi` would differ"
+source = 'func f() : Nat { let x = 1; x; }'
+output = '''
+func f() : Nat { let x = 1; x; }
+'''
+
+[[case]]
+why = "preserve: layout: an import’s braced pattern is a list, and `a; b` are two names, not a path"
+source = '''
+import {
+  a;
+  b
+} = "mo:x"'''
+output = '''
+import {
+  a;
+  b
+} = "mo:x"
+'''
+
+[[case]]
+why = "preserve: layout: the `;` between switch arms is a real token in the tree, so preserve keeps it"
+source = 'switch (x) { case (1) { 1 }; case (2) { 2 } }'
+output = '''
+switch (x) { case (1) { 1 }; case (2) { 2 } }
+'''
+
+[[case]]
+why = "preserve: layout: angle brackets are a list family with their own separator character"
+source = 'type T2<X, Y> = (X, Y)'
+output = '''
+type T2<X, Y> = (X, Y)
+'''
+
+[[case]]
+why = "preserve: layout: a self-referential type alias nests a tuple inside angle brackets"
+source = 'type List<A> = ?(A, List<A>)'
+output = '''
+type List<A> = ?(A, List<A>)
+'''
+
+[[case]]
+why = "preserve: layout: a block-headed construct does not flatten into its head"
+source = 'let x = do ? { 1 }'
+output = '''
+let x = do ? { 1 }
+'''
+
+[[case]]
+why = "preserve: layout: an empty object body is `{}` with no interior space"
+source = 'actor Palindrome { }'
+output = '''
+actor Palindrome {}
+'''
+
+[[case]]
+why = "preserve: layout: a chain broken before its operators stays broken there"
+source = '''
+let x = aaaa
+  + bbbb
+  + cccc;'''
+output = '''
+let x = aaaa
+  + bbbb
+  + cccc;
+'''
+
+[[case]]
+why = "preserve: comments: a block comment before an item stays on its line"
+source = '''
+let a = [
+  /* first */ 1,
+  2
+];'''
+output = '''
+let a = [
+  /* first */ 1,
+  2
+];
+'''
+
+[[case]]
+why = "preserve: comments: a comment that ends a line stays on it, and the next declaration starts a fresh line"
+source = '''
+let x = 1; // hi
+let y = 2'''
+output = '''
+let x = 1; // hi
+let y = 2
+'''
+
+[[case]]
+why = "preserve: comments: a block comment on a declaration’s line is pushed off it rather than absorbed"
+source = '/* hi */ let x = 1'
+output = '''
+/* hi */
+let x = 1
+'''
+
+[[case]]
+why = "preserve: comments: a doc comment is a comment kind of its own and keeps its own line"
+source = '''
+/// doc
+let x = 1'''
+output = '''
+/// doc
+let x = 1
+'''
+
+[[case]]
+why = "preserve: comments: a comment inside a record forces the record open, and keeps the line the author gave it"
+source = '''
+{ a = 1; // c
+ b = 2 }'''
+output = '''
+{
+  a = 1; // c
+  b = 2
+}
+'''
+
+[[case]]
+why = "preserve: comments: a line comment never absorbs the item after it"
+source = '''
+let r = {
+  aaaaaaaaaaaaaaaaaaaa = 1; // a long enough comment to matter
+  b = 2
+}'''
+output = '''
+let r = {
+  aaaaaaaaaaaaaaaaaaaa = 1; // a long enough comment to matter
+  b = 2
+}
+'''
+
+[[case]]
+why = "preserve: blank lines: three blank lines between declarations collapse to one"
+source = '''
+let a = 1;
+
+
+
+let b = 2;'''
+output = '''
+let a = 1;
+
+let b = 2;
+'''
+
+[[case]]
+why = "preserve: blank lines: one blank line is preserved as one"
+source = '''
+let x = 1;
+
+let y = 2'''
+output = '''
+let x = 1;
+
+let y = 2
+'''
+
+[[case]]
+why = "preserve: blank lines: declarations on one line are split, and no blank line is invented between them"
+source = 'let x = 1; let y = 2;'
+output = '''
+let x = 1;
+let y = 2;
+'''
+
+[[case]]
+why = "preserve: blank lines: blank lines inside a broken block are kept, a run collapses to one"
+source = '''
+func f() : Nat {
+
+ let x = 1;
+
+
+ x
+}'''
+output = '''
+func f() : Nat {
+
+  let x = 1;
+
+  x
+}
+'''
+
+[[case]]
+why = "preserve: blank lines: so are blank lines at the edges of a switch and between its arms"
+source = '''
+switch x {
+
+  case 1 {}
+
+
+  case _ {}
+
+}'''
+output = '''
+switch x {
+
+  case 1 {}
+
+  case _ {}
+
+}
+'''
+
+[[case]]
+why = "preserve: the import section: a blank line after the imports is kept"
+source = '''
+import A "A";
+
+actor {};
+'''
+output = '''
+import A "A";
+
+actor {};
+'''
+
+[[case]]
+why = "preserve: the import section: no blank line is invented after the imports"
+source = '''
+import A "A";
+// note
+actor {};
+'''
+output = '''
+import A "A";
+// note
+actor {};
+'''
+
+[[case]]
+why = "preserve: the import section: a leading blank before the first import is dropped"
+source = "\n\nimport A \"A\";\nactor {}"
+output = '''
+import A "A";
+actor {}
+'''
+
+[[case]]
+why = "preserve: untouched constructs: the number-dot seam is lexical, so no space may appear before the dot"
+source = 'let r = 1.toText()'
+output = '''
+let r = 1.toText()
+'''
+
+[[case]]
+why = "preserve: untouched constructs: a juxtaposed application is preserved — `tight-apply` is a moc2 edit, not this one"
+source = 'f x'
+output = '''
+f x
+'''
+
+[[case]]
+why = "preserve: untouched constructs: a multi-line string literal is opaque source text and is not re-indented"
+source = '''
+let s = "a
+b"'''
+output = '''
+let s = "a
+b"
+'''
+
+[[case]]
+why = "preserve: untouched constructs: an anonymous object with a member is a nested list inside an expression"
+source = 'let o = object { public func f() : Nat { 1 } }'
+output = '''
+let o = object { public func f() : Nat { 1 } }
+'''
+
+[[case]]
+why = "preserve: untouched constructs: a parenthesised expression in a body keeps its parens"
+source = 'func f() : Nat { (1) }'
+output = '''
+func f() : Nat { (1) }
+'''
+
+[[case]]
+why = "preserve: untouched constructs: an if/else chain is not merged or split across lines when it fits"
+source = 'let x = if c { 1 } else { 2 }'
+output = '''
+let x = if c { 1 } else { 2 }
+'''
+
+[[case]]
+why = "preserve: idempotence and options: printWidth never breaks a list"
+source = 'let r = { alpha = 1; beta = 2; gamma = 3; delta = 4; epsilon = 5; zeta = 6; eta = 7 }'
+output = '''
+let r = { alpha = 1; beta = 2; gamma = 3; delta = 4; epsilon = 5; zeta = 6; eta = 7 }
+'''
+
+[[case]]
+why = "preserve: the angle close: an instantiation list glues its close too"
+source = '''
+type L = List<List<Nat>>;
+let x = L.make<
+  Alpha,
+  Beta>();'''
+output = '''
+type L = List<List<Nat>>;
+let x = L.make<
+  Alpha,
+  Beta>();
+'''
+
+[[case]]
+why = "preserve: the angle close: no printed angle list anywhere ends a line before its `>`"
+source = '''
+func f<
+  Alpha,
+  Beta,
+  Gamma <: List<Nat>>(a : Alpha) : Beta = a;'''
+output = '''
+func f<
+  Alpha,
+  Beta,
+  Gamma <: List<Nat>>(a : Alpha) : Beta = a;
+'''
+
+[[case]]
+why = "preserve: the angle close: no printed angle list anywhere ends a line before its `>`"
+source = '''
+class C<
+  Alpha,
+  Beta>(a : Alpha) { public let b : Beta; };'''
+output = '''
+class C<
+  Alpha,
+  Beta>(a : Alpha) { public let b : Beta; };
+'''
+
+[[case]]
+why = "preserve: the angle close: no printed angle list anywhere ends a line before its `>`"
+source = '''
+let x = f<
+  Alpha,
+  Beta,
+  Gamma>();'''
+output = '''
+let x = f<
+  Alpha,
+  Beta,
+  Gamma>();
+'''
+
+[[case]]
+why = "moc2: a case pattern glued to `case` gets a space when its parens go"
+syntax = "moc2"
+source = '''
+switch x { case(null) { 0 }; case(?y){ y } };
+'''
+output = '''
+switch x { case null { 0 } case ?y { y } };
+'''

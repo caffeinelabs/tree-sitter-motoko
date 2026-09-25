@@ -1,0 +1,10 @@
+---
+source: tests/format.rs
+expression: out
+input_file: tests/format/imports/extra-blanks.mo
+---
+import A "A";
+
+import { B; C } "BC";
+
+actor {};

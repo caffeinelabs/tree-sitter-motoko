@@ -1,0 +1,8 @@
+---
+source: tests/format.rs
+expression: out
+input_file: tests/format/imports/glued-section.mo
+---
+import A "A";
+import B "B";
+actor {};
