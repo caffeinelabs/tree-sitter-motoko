@@ -8,7 +8,8 @@ use walkdir::WalkDir;
 
 /// Compiler tests that are genuine parse errors and so cannot become
 /// positive corpus tests, next to every `syntax*.mo` (see `is_fail_excluded`).
-const TEST_FAIL_EXCLUDES: [&str; 8] = [
+const TEST_FAIL_EXCLUDES: [&str; 9] = [
+    "do-postfix.mo",
     "par-bad-asyncstar.mo",
     "par-bad-nocall.mo",
     "obj-empty-with.mo",

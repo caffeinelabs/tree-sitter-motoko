@@ -1583,14 +1583,6 @@
         },
         {
           "type": "SYMBOL",
-          "name": "do_exp"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "do_quest_exp"
-        },
-        {
-          "type": "SYMBOL",
           "name": "func_exp"
         }
       ]
@@ -1689,14 +1681,6 @@
         {
           "type": "SYMBOL",
           "name": "ignore_exp"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "do_exp"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "do_quest_exp"
         },
         {
           "type": "SYMBOL",
@@ -1864,6 +1848,14 @@
           "members": [
             {
               "type": "SYMBOL",
+              "name": "do_exp"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "do_quest_exp"
+            },
+            {
+              "type": "SYMBOL",
               "name": "parenthetical_exp"
             },
             {
@@ -1916,6 +1908,14 @@
         {
           "type": "CHOICE",
           "members": [
+            {
+              "type": "SYMBOL",
+              "name": "do_exp"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "do_quest_exp"
+            },
             {
               "type": "SYMBOL",
               "name": "parenthetical_exp"
@@ -2115,6 +2115,14 @@
           "type": "CHOICE",
           "members": [
             {
+              "type": "SYMBOL",
+              "name": "do_exp"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "do_quest_exp"
+            },
+            {
               "type": "ALIAS",
               "content": {
                 "type": "SYMBOL",
@@ -2308,6 +2316,14 @@
           "type": "CHOICE",
           "members": [
             {
+              "type": "SYMBOL",
+              "name": "do_exp"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "do_quest_exp"
+            },
+            {
               "type": "ALIAS",
               "content": {
                 "type": "SYMBOL",
@@ -2442,14 +2458,6 @@
           },
           "named": true,
           "value": "awaitquest_exp"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "do_exp"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "do_quest_exp"
         }
       ]
     },
@@ -4823,6 +4831,42 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "_case_pat_un"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_case_alt_pat"
+          },
+          "named": true,
+          "value": "alt_pat"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_case_and_pat"
+          },
+          "named": true,
+          "value": "and_pat"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_case_annot_pat"
+          },
+          "named": true,
+          "value": "annot_pat"
+        }
+      ]
+    },
+    "_case_pat_un": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
           "name": "_pat_nullary"
         },
         {
@@ -4846,6 +4890,61 @@
         {
           "type": "SYMBOL",
           "name": "unop_pat"
+        }
+      ]
+    },
+    "_case_alt_pat": {
+      "type": "PREC_LEFT",
+      "value": 2,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_case_pat"
+          },
+          {
+            "type": "STRING",
+            "value": "or"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_case_pat"
+          }
+        ]
+      }
+    },
+    "_case_and_pat": {
+      "type": "PREC_LEFT",
+      "value": 3,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_case_pat"
+          },
+          {
+            "type": "STRING",
+            "value": "and"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_case_pat"
+          }
+        ]
+      }
+    },
+    "_case_annot_pat": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_case_pat"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "typ_annot"
         }
       ]
     },
@@ -4883,7 +4982,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_case_pat"
+          "name": "_case_pat_un"
         }
       ]
     },
@@ -4899,7 +4998,7 @@
           "name": "pattern",
           "content": {
             "type": "SYMBOL",
-            "name": "_pat_nullary"
+            "name": "_case_pat"
           }
         },
         {
