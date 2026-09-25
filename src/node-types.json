@@ -236,6 +236,14 @@
           "named": true
         },
         {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
+          "named": true
+        },
+        {
           "type": "dot_exp_block",
           "named": true
         },
@@ -380,6 +388,14 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
           "named": true
         },
         {
@@ -3546,6 +3562,14 @@
             "named": true
           },
           {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
+            "named": true
+          },
+          {
             "type": "dot_exp_block",
             "named": true
           },
@@ -3665,6 +3689,14 @@
           },
           {
             "type": "debug_show_exp",
+            "named": true
+          },
+          {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
             "named": true
           },
           {
@@ -3806,6 +3838,14 @@
             "named": true
           },
           {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
+            "named": true
+          },
+          {
             "type": "dot_exp_object",
             "named": true
           },
@@ -3909,6 +3949,14 @@
           },
           {
             "type": "debug_show_exp",
+            "named": true
+          },
+          {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
             "named": true
           },
           {
@@ -5240,6 +5288,18 @@
         "required": true,
         "types": [
           {
+            "type": "alt_pat",
+            "named": true
+          },
+          {
+            "type": "and_pat",
+            "named": true
+          },
+          {
+            "type": "annot_pat",
+            "named": true
+          },
+          {
             "type": "lit_pat",
             "named": true
           },
@@ -5522,6 +5582,18 @@
         "required": true,
         "types": [
           {
+            "type": "alt_pat",
+            "named": true
+          },
+          {
+            "type": "and_pat",
+            "named": true
+          },
+          {
+            "type": "annot_pat",
+            "named": true
+          },
+          {
             "type": "lit_pat",
             "named": true
           },
@@ -5530,7 +5602,19 @@
             "named": true
           },
           {
+            "type": "quest_pat",
+            "named": true
+          },
+          {
+            "type": "tag_pat",
+            "named": true
+          },
+          {
             "type": "tup_pat",
+            "named": true
+          },
+          {
+            "type": "unop_pat",
             "named": true
           },
           {
@@ -5934,6 +6018,14 @@
             "named": true
           },
           {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
+            "named": true
+          },
+          {
             "type": "dot_exp_block",
             "named": true
           },
@@ -6277,6 +6369,14 @@
           },
           {
             "type": "debug_show_exp",
+            "named": true
+          },
+          {
+            "type": "do_exp",
+            "named": true
+          },
+          {
+            "type": "do_quest_exp",
             "named": true
           },
           {
@@ -6657,6 +6757,14 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
           "named": true
         },
         {
@@ -8273,6 +8381,14 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
           "named": true
         },
         {
@@ -11869,6 +11985,14 @@
           "named": true
         },
         {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
+          "named": true
+        },
+        {
           "type": "dot_exp_block",
           "named": true
         },
@@ -12755,6 +12879,14 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
           "named": true
         },
         {
@@ -14806,6 +14938,14 @@
           "named": true
         },
         {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
+          "named": true
+        },
+        {
           "type": "dot_exp_block",
           "named": true
         },
@@ -14944,6 +15084,14 @@
         },
         {
           "type": "debug_show_exp",
+          "named": true
+        },
+        {
+          "type": "do_exp",
+          "named": true
+        },
+        {
+          "type": "do_quest_exp",
           "named": true
         },
         {

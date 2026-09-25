@@ -44,7 +44,12 @@ function semi_sep1(rule) {
 // the head when its `(`/`[` is glued to what precedes it (`token.immediate`). A spaced `(`/`[` starts the legacy
 // bare branch instead, exactly as in the compiler's lexer. The prefix-shaped operators (`if (c) -1 else 1`,
 // `if a #yes else #no`) are resolved by GLR: the head reading dies when no block follows, and where both
-// readings survive `prec.dynamic` prefers the head. Head-mode nodes are aliased to the `_block` node names,
+// readings survive `prec.dynamic` prefers the head. The compiler decides by whitespace instead: a `-`, `+`, `^` or
+// `#tag` spaced before and glued after starts the branch. The two agree wherever only one reading is valid, which
+// covers every program in the corpus. GLR also accepts forms the compiler rejects (`if (c) - 1 else 1`,
+// `switch n -1 { }`), and only a contrived program parses differently: `if (c) -h {} else { 5 }`, where `h {}` is
+// a call. Following the compiler exactly would need tokens that carry the whitespace after them, so they would
+// leak into `bin_op` ranges, or an external scanner. Head-mode nodes are aliased to the `_block` node names,
 // so consumers see no new node kinds.
 function _exp($, b) {
   return $[`_exp_${b}`]
@@ -179,8 +184,6 @@ function mk_exp_non_dec($, b) {
     $.loop_exp,
     $.for_exp,
     $.ignore_exp,
-    $.do_exp,
-    $.do_quest_exp,
     $.func_exp,
   );
 }
@@ -201,8 +204,12 @@ function mk_exp_bin($, b) {
 }
 
 // The prefix forms. In head mode their operands are head-mode too.
+// `do { }` is an operand at this level, as in the compiler, so no postfix form follows it:
+// `do { r }.a` would read as if `.a` were inside the block. It is not an atom, so `if do { c } { }` is an extended head.
 function mk_exp_un_ext($, b) {
   return choice(
+    $.do_exp,
+    $.do_quest_exp,
     head_alias($, "parenthetical_exp", b),
     head_alias($, "hash_exp", b),
     head_alias($, "quest_exp", b),
@@ -698,8 +705,6 @@ export default grammar({
       alias($.await_exp_head, $.await_exp),
       alias($.awaitstar_exp_head, $.awaitstar_exp),
       alias($.awaitquest_exp_head, $.awaitquest_exp),
-      $.do_exp,
-      $.do_quest_exp,
     ),
 
     // The one head grammar shared by `if`, `while`, `switch` and `for`:
@@ -1048,14 +1053,25 @@ export default grammar({
     ),
 
     // Case patterns that end unambiguously without parentheses:
-    // `case null`, `case 0`, `case -1`, `case ?p`, `case #tag`, `case #tag(p)`.
+    // `case null`, `case 0`, `case -1`, `case ?p`, `case #tag`, `case #tag(p)`,
+    // and `or`/`and`/`: T` over those (`case #less or #equal { ... }`): no expression starts with `or`, `and` or `:`.
     // A variant payload must be parenthesized so that in `case #tag { ... }` the braces are the case body.
+    // `catch` takes the same patterns.
     _case_pat: $ => choice(
+      $._case_pat_un,
+      alias($._case_alt_pat, $.alt_pat),
+      alias($._case_and_pat, $.and_pat),
+      alias($._case_annot_pat, $.annot_pat),
+    ),
+    _case_pat_un: $ => choice(
       $._pat_nullary,
       alias($._case_tag_pat, $.tag_pat),
       alias($._case_quest_pat, $.quest_pat),
       $.unop_pat,
     ),
+    _case_alt_pat: $ => prec.left(2, seq($._case_pat, "or", $._case_pat)),
+    _case_and_pat: $ => prec.left(3, seq($._case_pat, "and", $._case_pat)),
+    _case_annot_pat: $ => seq($._case_pat, $.typ_annot),
     // `case #tag (x) ...`: the parenthesized pattern is the payload, as in
     // the compiler, so a parenthesized bare body needs a payload first.
     _case_tag_pat: $ => prec.right(seq(
@@ -1064,11 +1080,11 @@ export default grammar({
     )),
     _case_quest_pat: $ => seq(
       "?",
-      $._case_pat,
+      $._case_pat_un,
     ),
     catch: $ => seq(
       "catch",
-      field("pattern", $._pat_nullary),
+      field("pattern", $._case_pat),
       field("body", $._exp_nest),
     ),
 

@@ -712,6 +712,212 @@ switch o { case (? -1) { } case _ { } };
         (block_exp)))))
 
 ==================
+Case patterns combine with or, and and a type annotation
+==================
+
+switch o { case #less or #equal { true } case #greater { false } };
+switch o { case null or ?0 or ?1 true; case ?_ false };
+switch v { case #a(n) or #b(n) n; case #c 0 };
+switch r { case { x = 0 } and { y } { y } case { x } : { x : Nat } x };
+switch x { case ?a and ?b or null { } case n : Nat { } };
+
+---
+
+(source_file
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (alt_pat
+          (tag_pat
+            (tag_identifier
+              (identifier)))
+          (tag_pat
+            (tag_identifier
+              (identifier))))
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (bool_literal)))))
+      (case
+        (tag_pat
+          (tag_identifier
+            (identifier)))
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (bool_literal)))))))
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (alt_pat
+          (alt_pat
+            (lit_pat
+              (null_literal))
+            (quest_pat
+              (lit_pat
+                (int_literal))))
+          (quest_pat
+            (lit_pat
+              (int_literal))))
+        (lit_exp
+          (bool_literal)))
+      (case
+        (quest_pat
+          (wild_pat))
+        (lit_exp
+          (bool_literal)))))
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (alt_pat
+          (tag_pat
+            (tag_identifier
+              (identifier))
+            (tup_pat
+              (var_pat
+                (identifier))))
+          (tag_pat
+            (tag_identifier
+              (identifier))
+            (tup_pat
+              (var_pat
+                (identifier)))))
+        (var_exp
+          (identifier)))
+      (case
+        (tag_pat
+          (tag_identifier
+            (identifier)))
+        (lit_exp
+          (int_literal)))))
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (and_pat
+          (obj_pat
+            (val_pat_field
+              (identifier)
+              (lit_pat
+                (int_literal))))
+          (obj_pat
+            (val_pat_field
+              (identifier))))
+        (block_exp
+          (exp_dec
+            (var_exp
+              (identifier)))))
+      (case
+        (annot_pat
+          (obj_pat
+            (val_pat_field
+              (identifier)))
+          (typ_annot
+            (obj_typ
+              (val_tf
+                (identifier)
+                (path_typ
+                  (typ_path
+                    (type_identifier)))))))
+        (var_exp
+          (identifier)))))
+  (exp_dec
+    (switch_exp
+      (var_exp
+        (identifier))
+      (case
+        (alt_pat
+          (and_pat
+            (quest_pat
+              (var_pat
+                (identifier)))
+            (quest_pat
+              (var_pat
+                (identifier))))
+          (lit_pat
+            (null_literal)))
+        (block_exp))
+      (case
+        (annot_pat
+          (var_pat
+            (identifier))
+          (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier)))))
+        (block_exp)))))
+
+==================
+Catch takes case patterns
+==================
+
+try { f() } catch e : Error { log(e) };
+try { f() } catch #a or #b { };
+
+---
+
+(source_file
+  (exp_dec
+    (try_exp
+      (block_exp
+        (exp_dec
+          (call_exp_object
+            (var_exp
+              (identifier))
+            (par_exp))))
+      (catch
+        (annot_pat
+          (var_pat
+            (identifier))
+          (typ_annot
+            (path_typ
+              (typ_path
+                (type_identifier)))))
+        (block_exp
+          (exp_dec
+            (call_exp_object
+              (var_exp
+                (identifier))
+              (par_exp
+                (var_exp
+                  (identifier)))))))))
+  (exp_dec
+    (try_exp
+      (block_exp
+        (exp_dec
+          (call_exp_object
+            (var_exp
+              (identifier))
+            (par_exp))))
+      (catch
+        (alt_pat
+          (tag_pat
+            (tag_identifier
+              (identifier)))
+          (tag_pat
+            (tag_identifier
+              (identifier))))
+        (block_exp)))))
+
+==================
+A variant payload in a case pattern needs parentheses
+:error
+==================
+
+switch x { case #a n : Nat { } };
+
+---
+
+
+
+==================
 Null coalescing right-hand side is expression position
 ==================
 
@@ -777,10 +983,164 @@ let nn : ??Nat = ??1;
           (int_literal))))))
 
 ==================
+Do blocks are operator operands
+==================
+
+let a = 1 + do { 2 };
+let b = do { 1 } + 2;
+let t = debug_show do { 5 };
+let n : Int = -do { 1 };
+let o = ?do { 1 };
+let y = do { 1 } : Nat;
+let q = do ? { x! + 1 } ?? 0;
+let p = (do { r }).a;
+let v = if do { true } { 1 } else { 2 };
+
+---
+
+(source_file
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (lit_exp
+        (int_literal))
+      (bin_op)
+      (do_exp
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (int_literal)))))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (do_exp
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (int_literal)))))
+      (bin_op)
+      (lit_exp
+        (int_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (debug_show_exp
+      (do_exp
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (int_literal)))))))
+  (let_dec
+    (annot_pat
+      (var_pat
+        (identifier))
+      (typ_annot
+        (path_typ
+          (typ_path
+            (type_identifier)))))
+    (unop_exp
+      (unop)
+      (do_exp
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (int_literal)))))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (quest_exp
+      (do_exp
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (int_literal)))))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (annot_exp_object
+      (do_exp
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (int_literal)))))
+      (path_typ
+        (typ_path
+          (type_identifier)))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (coalesce_exp_object
+      (do_quest_exp
+        (block_exp
+          (exp_dec
+            (bin_exp_object
+              (bang_exp_object
+                (var_exp
+                  (identifier)))
+              (bin_op)
+              (lit_exp
+                (int_literal))))))
+      (lit_exp
+        (int_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (dot_exp_object
+      (par_exp
+        (do_exp
+          (block_exp
+            (exp_dec
+              (var_exp
+                (identifier))))))
+      (identifier)))
+  (let_dec
+    (var_pat
+      (identifier))
+    (if_exp
+      (do_exp
+        (block_exp
+          (exp_dec
+            (lit_exp
+              (bool_literal)))))
+      (block_exp
+        (exp_dec
+          (lit_exp
+            (int_literal))))
+      (block_exp
+        (exp_dec
+          (lit_exp
+            (int_literal)))))))
+
+==================
+A postfix form cannot follow a do block
+:error
+==================
+
+let a = do { r }.a;
+
+---
+
+
+
+==================
+A do block head is extended and takes braced branches
+:error
+==================
+
+let v = if do { true } 1 else 2;
+
+---
+
+
+
+==================
 Prefix-shaped operators stay binary outside heads
 ==================
 
 let t = "a" #"b";
+let u = a #b;
 let n : Int = 10 -1 -2 * 2;
 let masked : Nat8 = 0xff ^0x0f;
 
@@ -796,6 +1156,15 @@ let masked : Nat8 = 0xff ^0x0f;
       (bin_op)
       (lit_exp
         (text_literal))))
+  (let_dec
+    (var_pat
+      (identifier))
+    (bin_exp_object
+      (var_exp
+        (identifier))
+      (bin_op)
+      (var_exp
+        (identifier))))
   (let_dec
     (annot_pat
       (var_pat
