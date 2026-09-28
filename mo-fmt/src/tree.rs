@@ -1,6 +1,7 @@
 //! The normalised tree: every byte of the source belongs to exactly one leaf, so printing the leaves in order reproduces it.
 
 use std::fmt;
+use std::sync::LazyLock;
 
 mod head_symbols {
     include!(concat!(env!("OUT_DIR"), "/head_symbols.rs"));
@@ -202,14 +203,26 @@ impl fmt::Display for SyntaxError {
     }
 }
 
-fn language() -> tree_sitter::Language {
-    tree_sitter_motoko::LANGUAGE.into()
+/// Static so kinds and field names come out `'static`; tree-sitter's own accessors borrow them from the tree.
+static LANGUAGE: LazyLock<tree_sitter::Language> =
+    LazyLock::new(|| tree_sitter_motoko::LANGUAGE.into());
+
+fn kind(node: tree_sitter::Node) -> &'static str {
+    LANGUAGE
+        .node_kind_for_id(node.kind_id())
+        .expect("a parsed node's kind is in the grammar")
+}
+
+fn field_name(cursor: &tree_sitter::TreeCursor) -> Option<&'static str> {
+    cursor
+        .field_id()
+        .and_then(|id| LANGUAGE.field_name_for_id(id.get()))
 }
 
 pub fn parse(source: &str) -> Result<Node<'_>, SyntaxError> {
     let mut parser = tree_sitter::Parser::new();
     parser
-        .set_language(&language())
+        .set_language(&LANGUAGE)
         .expect("the grammar's ABI matches tree-sitter");
     let tree = parser
         .parse(source, None)
@@ -252,7 +265,7 @@ impl<'a> Normalizer<'a> {
             loop {
                 let child = cursor.node();
                 self.gap(&mut out, at, child.start_byte());
-                out.push(self.child(child, cursor.field_name()));
+                out.push(self.child(child, field_name(&cursor)));
                 at = child.end_byte();
                 if !cursor.goto_next_sibling() {
                     break;
@@ -281,7 +294,7 @@ impl<'a> Normalizer<'a> {
         if node.child_count() == 0 || node.kind() == "comment_text" {
             return Node::Token(Token {
                 start: node.start_byte(),
-                kind: node.kind(),
+                kind: kind(node),
                 named: node.is_named(),
                 extra: node.is_extra(),
                 error: node.is_error(),
@@ -301,7 +314,7 @@ impl<'a> Normalizer<'a> {
         start: usize,
         end: usize,
     ) -> Branch<'a> {
-        let ty = node.kind();
+        let ty = kind(node);
         let (kind, suffix_mode) = strip_mode(ty);
         let mode = if HEAD_SYMBOL_IDS.binary_search(&node.grammar_id()).is_ok() {
             Some(Mode::Block)
