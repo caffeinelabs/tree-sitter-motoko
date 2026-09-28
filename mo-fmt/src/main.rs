@@ -5,11 +5,11 @@ use std::process::ExitCode;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use clap::Parser;
-use mo_fmt::{Config, Error, format};
+use mo_fmt::{Config, Error, IndentWidth, Syntax, format};
 
 const CONFIG_FILE: &str = "mo-fmt.toml";
 
-/// Formats Motoko files in place, with the options from `mo-fmt.toml` in the current directory.
+/// Formats Motoko files in place, with the options from `mo-fmt.toml` in the current directory. Flags override it.
 #[derive(Parser)]
 #[command(version, about)]
 struct Args {
@@ -24,6 +24,14 @@ struct Args {
     /// Format stdin and print the result; the path names the file in messages.
     #[arg(long, value_name = "PATH", conflicts_with_all = ["paths", "check"])]
     stdin_filepath: Option<PathBuf>,
+
+    /// Overrides `syntax` in `mo-fmt.toml` [default: preserve]
+    #[arg(long, value_enum)]
+    syntax: Option<Syntax>,
+
+    /// Overrides `indent-width` in `mo-fmt.toml`: spaces per level, 1 to 16 [default: 2]
+    #[arg(long, value_name = "N")]
+    indent_width: Option<IndentWidth>,
 }
 
 /// Exit codes: 0 done, 1 `--check` found files that need formatting, 2 a usage error or a file that failed to format.
@@ -36,13 +44,19 @@ fn main() -> ExitCode {
         }
     }));
     let args = Args::parse();
-    let config = match load_config() {
+    let mut config = match load_config() {
         Ok(config) => config,
         Err(message) => {
             eprintln!("{CONFIG_FILE}: {message}");
             return ExitCode::from(2);
         }
     };
+    if let Some(syntax) = args.syntax {
+        config.syntax = syntax;
+    }
+    if let Some(width) = args.indent_width {
+        config.indent_width = width;
+    }
 
     if let Some(path) = &args.stdin_filepath {
         return format_stdin(path, &config);

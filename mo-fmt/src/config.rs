@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, clap::ValueEnum)]
 #[serde(rename_all = "lowercase")]
 pub enum Syntax {
     /// Keep the syntax as written.
@@ -22,6 +22,17 @@ impl IndentWidth {
 
     pub fn get(self) -> usize {
         self.0.into()
+    }
+}
+
+impl std::str::FromStr for IndentWidth {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, String> {
+        let n = s
+            .parse::<i64>()
+            .map_err(|_| format!("indent-width must be a number, not {s:?}"))?;
+        Self::try_from(n)
     }
 }
 
