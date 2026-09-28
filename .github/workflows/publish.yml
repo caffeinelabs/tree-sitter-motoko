@@ -19,6 +19,17 @@ jobs:
     with:
       generate: true
 
+  # The shared workflow creates the release without a title, so GitHub shows a commit message in its place.
+  title:
+    name: Title the release with its version
+    needs: github
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   build-wasm:
     name: Build Wasm binaries
     runs-on: ubuntu-24.04
