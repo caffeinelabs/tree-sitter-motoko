@@ -137,6 +137,46 @@ fn reads_the_syntax_from_mo_fmt_toml() {
 }
 
 #[test]
+fn flags_override_mo_fmt_toml() {
+    let source = "if (c) {\nx\n};\n";
+    // No config file.
+    let dir = project(&[]);
+    assert_eq!(
+        run(
+            &dir,
+            &[
+                "--syntax",
+                "moc2",
+                "--indent-width",
+                "4",
+                "--stdin-filepath",
+                "A.mo"
+            ],
+            source
+        ),
+        (0, "if c {\n    x\n};\n".into(), String::new())
+    );
+    // Each flag replaces only its own key.
+    let dir = project(&[("mo-fmt.toml", "syntax = \"moc2\"\nindent-width = 4\n")]);
+    assert_eq!(
+        run(
+            &dir,
+            &["--syntax", "preserve", "--stdin-filepath", "A.mo"],
+            source
+        ),
+        (0, "if (c) {\n    x\n};\n".into(), String::new())
+    );
+
+    let (code, _, stderr) = run(&dir, &["--indent-width", "17", "A.mo"], "");
+    assert_eq!(code, 2);
+    assert!(
+        stderr.contains("indent-width must be between 1 and 16, not 17"),
+        "{stderr}"
+    );
+    assert_eq!(run(&dir, &["--syntax", "v2", "A.mo"], "").0, 2);
+}
+
+#[test]
 fn a_file_that_fails_to_parse_is_reported_and_the_rest_are_formatted() {
     let dir = project(&[("A.mo", "let x = ;\n"), ("B.mo", UNFORMATTED)]);
     let (code, _, stderr) = run(&dir, &["A.mo", "B.mo"], "");

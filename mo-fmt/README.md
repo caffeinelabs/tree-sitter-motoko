@@ -11,6 +11,7 @@ mo-fmt .                                     # format every .mo file under the c
 mo-fmt src/main.mo lib/                      # some files and directories
 mo-fmt --check .                             # list what would change, and exit 1 if anything would
 mo-fmt --stdin-filepath src/main.mo < src/main.mo   # format stdin, for editors
+mo-fmt --syntax moc2 .                       # override mo-fmt.toml; see Configuration
 ```
 
 - Directories are searched for `.mo` files, honouring the project's `.gitignore` files (not your global one, so results are the same on every machine) and skipping `node_modules`, dot-directories such as `.mops`, and symlinks. A file named on the command line is always formatted, and a symlink named there is followed.
@@ -27,6 +28,12 @@ An optional `mo-fmt.toml` in the current directory:
 ```toml
 syntax = "preserve"   # or "moc2", which rewrites legacy syntax to the moc 2.0 forms
 indent-width = 2      # 1 to 16
+```
+
+Flags override the file key by key, so a tool can pass the options without writing one:
+
+```sh
+mo-fmt --syntax moc2 --indent-width 4 .
 ```
 
 `moc2` braces every control body, drops the parentheses around control heads and case patterns where moc 2.0 allows it, and drops the `;` after a braced `case` arm. It may change between minor versions while moc 2.0 is in beta.
