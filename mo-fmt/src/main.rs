@@ -93,6 +93,7 @@ fn main() -> ExitCode {
     files.retain(|f| seen.insert(std::fs::canonicalize(f).unwrap_or_else(|_| f.clone())));
 
     let mut changed = 0;
+    let mut errors = 0;
     let mut out = std::io::stdout().lock();
     for file in &files {
         match format_file(file, &config, args.check) {
@@ -103,27 +104,48 @@ fn main() -> ExitCode {
             }
             Err(message) => {
                 eprintln!("{message}");
+                errors += 1;
                 failed = true;
             }
         }
     }
 
-    let noun = if files.len() == 1 { "file" } else { "files" };
-    let _ = if !args.check {
-        writeln!(out, "Formatted {changed} of {} {noun}.", files.len())
-    } else if changed == 0 && files.len() == 1 {
-        writeln!(out, "The file is formatted.")
-    } else if changed == 0 {
-        writeln!(out, "All {} files are formatted.", files.len())
-    } else {
-        writeln!(out, "{changed} of {} {noun} need formatting.", files.len())
-    };
+    let _ = writeln!(out, "{}", summary(args.check, files.len(), changed, errors));
     if failed {
         ExitCode::from(2)
     } else if args.check && changed > 0 {
         ExitCode::from(1)
     } else {
         ExitCode::SUCCESS
+    }
+}
+
+/// The line that ends a run over `total` files: `changed` changed, or would have with `check`, and `failed` failed to format.
+fn summary(check: bool, total: usize, changed: usize, failed: usize) -> String {
+    // A file that failed is neither formatted nor in need of it, so `--check` mustn't call it formatted.
+    let failures = match failed {
+        0 => String::new(),
+        n => format!("; {n} failed to format"),
+    };
+    if total == 0 {
+        "No Motoko files found.".into()
+    } else if !check {
+        let noun = if total == 1 { "file" } else { "files" };
+        format!("Formatted {changed} of {total} {noun}{failures}.")
+    } else if total == 1 {
+        match (changed, failed) {
+            (1, _) => "The file needs formatting.",
+            (_, 1) => "The file failed to format.",
+            _ => "The file is formatted.",
+        }
+        .into()
+    } else if changed == 0 && failed == 0 {
+        format!("All {total} files are formatted.")
+    } else if changed == 0 {
+        format!("{failed} of {total} files failed to format.")
+    } else {
+        let verb = if changed == 1 { "needs" } else { "need" };
+        format!("{changed} of {total} files {verb} formatting{failures}.")
     }
 }
 
@@ -258,7 +280,7 @@ fn motoko_files(dir: &Path) -> (Vec<PathBuf>, Vec<String>) {
 
 #[cfg(test)]
 mod tests {
-    use super::replace;
+    use super::{replace, summary};
     use std::fs;
 
     struct TempDir(std::path::PathBuf);
@@ -266,6 +288,37 @@ mod tests {
     impl Drop for TempDir {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn summary_accounts_for_every_file() {
+        for (check, total, changed, failed, line) in [
+            (false, 0, 0, 0, "No Motoko files found."),
+            (true, 0, 0, 0, "No Motoko files found."),
+            (false, 1, 1, 0, "Formatted 1 of 1 file."),
+            (
+                false,
+                2,
+                0,
+                2,
+                "Formatted 0 of 2 files; 2 failed to format.",
+            ),
+            (true, 1, 0, 0, "The file is formatted."),
+            (true, 1, 1, 0, "The file needs formatting."),
+            (true, 1, 0, 1, "The file failed to format."),
+            (true, 2, 0, 0, "All 2 files are formatted."),
+            (true, 3, 1, 0, "1 of 3 files needs formatting."),
+            (
+                true,
+                3,
+                2,
+                1,
+                "2 of 3 files need formatting; 1 failed to format.",
+            ),
+            (true, 3, 0, 2, "2 of 3 files failed to format."),
+        ] {
+            assert_eq!(summary(check, total, changed, failed), line);
         }
     }
 
