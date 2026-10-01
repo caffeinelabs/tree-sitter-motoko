@@ -101,7 +101,7 @@ fn check_lists_the_files_that_would_change_without_writing() {
         run(&dir, &["--check", "A.mo", "B.mo"], ""),
         (
             1,
-            "A.mo\n1 of 2 files need formatting.\n".into(),
+            "A.mo\n1 of 2 files needs formatting.\n".into(),
             String::new()
         )
     );
@@ -184,7 +184,7 @@ fn a_file_that_fails_to_parse_is_reported_and_the_rest_are_formatted() {
         run(&dir, &["--check", "A.mo", "B.mo"], ""),
         (
             2,
-            "B.mo\n1 of 2 files need formatting; 1 failed to format.\n".into(),
+            "B.mo\n1 of 2 files needs formatting; 1 failed to format.\n".into(),
             error.into()
         )
     );
