@@ -116,7 +116,7 @@ fn reads_the_syntax_from_mo_fmt_toml() {
         ("A.mo", "if (c) x else y;\n"),
     ]);
     assert_eq!(run(&dir, &["A.mo"], "").0, 0);
-    assert_eq!(read(&dir, "A.mo"), "if c { x } else { y };\n");
+    assert_eq!(read(&dir, "A.mo"), "if c { x } else { y }\n");
 
     let dir = project(&[("mo-fmt.toml", "indent-width = 0\n"), ("A.mo", FORMATTED)]);
     let (code, _, stderr) = run(&dir, &["A.mo"], "");
@@ -154,7 +154,7 @@ fn flags_override_mo_fmt_toml() {
             ],
             source
         ),
-        (0, "if c {\n    x\n};\n".into(), String::new())
+        (0, "if c {\n    x\n}\n".into(), String::new())
     );
     // Each flag replaces only its own key.
     let dir = project(&[("mo-fmt.toml", "syntax = \"moc2\"\nindent-width = 4\n")]);
@@ -187,7 +187,7 @@ fn rules_override_the_syntax_preset_in_the_file_and_by_flag() {
     };
     assert_eq!(
         stdin(&[]),
-        (0, "if (c) { x } else { y };\n".into(), String::new())
+        (0, "if (c) { x } else { y }\n".into(), String::new())
     );
     // A later flag wins over an earlier one and over the file.
     assert_eq!(
@@ -199,7 +199,7 @@ fn rules_override_the_syntax_preset_in_the_file_and_by_flag() {
             "--rule",
             "brace-bodies=true"
         ]),
-        (0, "if c { x } else { y };\n".into(), String::new())
+        (0, "if c { x } else { y }\n".into(), String::new())
     );
 
     let (code, _, stderr) = stdin(&["--rule", "brace-bodies=yes"]);

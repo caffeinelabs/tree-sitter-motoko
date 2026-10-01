@@ -2,7 +2,7 @@
 
 mod control;
 mod exp;
-mod parts;
+pub(crate) mod parts;
 
 use crate::doc::{
     BreakParent, Doc, EMPTY, HardLine, align, concat, group, text, verbatim as verbatim_text,

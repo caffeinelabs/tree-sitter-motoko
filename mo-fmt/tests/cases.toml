@@ -215,7 +215,7 @@ source = '''
 if (c) x else y;
 '''
 output = '''
-if c { x } else { y };
+if c { x } else { y }
 '''
 
 [[case]]
@@ -225,7 +225,7 @@ source = '''
 let a = if (c) 1 else if (d) 2 else { 3 };
 '''
 output = '''
-let a = if c { 1 } else if d { 2 } else { 3 };
+let a = if c { 1 } else if d { 2 } else { 3 }
 '''
 
 [[case]]
@@ -235,7 +235,7 @@ source = '''
 while (c) f();
 '''
 output = '''
-while c { f() };
+while c { f() }
 '''
 
 [[case]]
@@ -245,7 +245,7 @@ source = '''
 for (x in xs.values()) f(x);
 '''
 output = '''
-for x in xs.values() { f(x) };
+for x in xs.values() { f(x) }
 '''
 
 [[case]]
@@ -257,7 +257,7 @@ loop { f() } while (g x);
 '''
 output = '''
 loop { f() } while c;
-loop { f() } while (g x);
+loop { f() } while (g x)
 '''
 
 [[case]]
@@ -269,7 +269,7 @@ try f() catch (e : Error) { g() } finally h();
 '''
 output = '''
 try { f() } catch e { g() };
-try { f() } catch e : Error { g() } finally { h() };
+try { f() } catch e : Error { g() } finally { h() }
 '''
 
 [[case]]
@@ -285,7 +285,7 @@ output = '''
 let a = async { 42 };
 let b = async* { f() };
 let c = (with cycles = 1) async { g() };
-let d = async { 1 };
+let d = async { 1 }
 '''
 
 [[case]]
@@ -313,7 +313,7 @@ ignore do { x };
 assert do { true };
 throw do { e };
 await do { f() };
-loop {} while do { c };
+loop {} while do { c }
 '''
 
 [[case]]
@@ -323,7 +323,7 @@ source = '''
 let ?u = get(id) else{ return null };
 '''
 output = '''
-let ?u = get(id) else do { return null };
+let ?u = get(id) else do { return null }
 '''
 
 [[case]]
@@ -333,7 +333,7 @@ source = '''
 switch x { case (0 or 1) { a }; case (#a v or #b v) { v }; case (?y and z) { z }; case (n : Nat) { n }; case (#c (p, q) : T) { p } };
 '''
 output = '''
-switch x { case 0 or 1 { a } case #a(v) or #b(v) { v } case ?y and z { z } case n : Nat { n } case #c(p, q) : T { p } };
+switch x { case 0 or 1 { a } case #a(v) or #b(v) { v } case ?y and z { z } case n : Nat { n } case #c(p, q) : T { p } }
 '''
 
 [[case]]
@@ -343,7 +343,7 @@ source = '''
 switch (x) { case (null) 0; case (?y) { y }; case (#t z) z; case (#u) 1 };
 '''
 output = '''
-switch x { case null { 0 } case ?y { y } case #t(z) { z } case #u { 1 } };
+switch x { case null { 0 } case ?y { y } case #t(z) { z } case #u { 1 } }
 '''
 
 [[case]]
@@ -363,7 +363,7 @@ source = '''
 switch (x) { case (null) 0; case (?y) { y }; case (#t z) z; case (#u) 1 };
 '''
 output = '''
-switch (x) { case (null) { 0 } case (?y) { y } case (#t z) { z } case (#u) { 1 } };
+switch (x) { case (null) { 0 } case (?y) { y } case (#t z) { z } case (#u) { 1 } }
 '''
 
 [[case]]
@@ -373,7 +373,7 @@ source = '''
 switch (x) { case (null) 0; case (?y) { y }; case (#u) 1 };
 '''
 output = '''
-switch (x) { case (null) 0; case (?y) { y } case (#u) 1 };
+switch (x) { case (null) 0; case (?y) { y } case (#u) 1 }
 '''
 
 [[case]]
@@ -386,6 +386,90 @@ if (c) { x } else { y };
 output = '''
 if (c) x else y;
 if c { x } else { y };
+'''
+
+[[case]]
+why = "rules: `semicolons = minimal` drops the `;` after the last item of every `;` list, and keeps the ones between items"
+config = { semicolons = "minimal" }
+source = '''
+func f() { a; b; };
+let r = { x = 1; y = 2; };
+type V = { #a; #b; };
+let k = {
+  a; // last
+};
+'''
+output = '''
+func f() { a; b };
+let r = { x = 1; y = 2 };
+type V = { #a; #b };
+let k = {
+  a // last
+}
+'''
+
+[[case]]
+why = "rules: `trailing-commas = multiline` puts one on a broken list, after a trailing comment's item, and takes it off a one-line list"
+config = { trailing-commas = "multiline" }
+source = '''
+let c = (1, 2,);
+let m = add(
+  map,
+  key // the key
+);
+let arr = [
+  1,
+  2
+];
+'''
+output = '''
+let c = (1, 2);
+let m = add(
+  map,
+  key, // the key
+);
+let arr = [
+  1,
+  2,
+];
+'''
+
+[[case]]
+why = "rules: `trailing-commas = multiline` leaves a parenthesised single item and a `<…>` list without one"
+config = { trailing-commas = "multiline" }
+source = '''
+let one = (
+  a + b,
+);
+let g = f<
+  Nat,
+  Text>(1);
+'''
+output = '''
+let one = (
+  a + b
+);
+let g = f<
+  Nat,
+  Text>(1);
+'''
+
+[[case]]
+why = "rules: `trailing-commas = never`"
+config = { trailing-commas = "never" }
+source = '''
+func h(x : Nat,) {};
+let arr = [
+  1,
+  2,
+];
+'''
+output = '''
+func h(x : Nat) {};
+let arr = [
+  1,
+  2
+];
 '''
 
 [[case]]
@@ -403,7 +487,7 @@ if x != #a and not (p y) {};
 switch f(a, #b, -1) {};
 if i +% 1 < n {};
 if s != "{" and any(func() { t }) {};
-if a - 1 > 0 {};
+if a - 1 > 0 {}
 '''
 
 [[case]]
@@ -417,7 +501,7 @@ for (x in h<T> xs) {};
 output = '''
 if not f(x)(y) {};
 while g(x) and a[i] {};
-for x in h<T>(xs) {};
+for x in h<T>(xs) {}
 '''
 
 [[case]]
@@ -427,7 +511,7 @@ source = '''
 switch (a, b) { case (_, _) {} };
 '''
 output = '''
-switch (a, b) { case (_, _) {} };
+switch (a, b) { case (_, _) {} }
 '''
 
 [[case]]
@@ -437,7 +521,7 @@ source = '''
 if ({ a = 1 }.a == 1) { 1 } else { 2 };
 '''
 output = '''
-if ({ a = 1 }.a == 1) { 1 } else { 2 };
+if ({ a = 1 }.a == 1) { 1 } else { 2 }
 '''
 
 [[case]]
@@ -447,7 +531,7 @@ source = '''
 switch (f x, y) {};
 '''
 output = '''
-switch (f x, y) {};
+switch (f x, y) {}
 '''
 
 [[case]]
@@ -457,7 +541,7 @@ source = '''
 if (a -1) { 1 } else { 2 };
 '''
 output = '''
-if (a -1) { 1 } else { 2 };
+if (a -1) { 1 } else { 2 }
 '''
 
 [[case]]
@@ -467,7 +551,7 @@ source = '''
 if (await f()) { 1 } else { 2 };
 '''
 output = '''
-if (await f()) { 1 } else { 2 };
+if (await f()) { 1 } else { 2 }
 '''
 
 [[case]]
@@ -483,7 +567,7 @@ output = '''
 if (
   a or
   b
-) {};
+) {}
 '''
 
 [[case]]
@@ -503,7 +587,7 @@ switch x {
     a,
     b
   )) {}
-};
+}
 '''
 
 [[case]]
@@ -513,7 +597,7 @@ source = '''
 func f() : Nat = 1;
 '''
 output = '''
-func f() : Nat = 1;
+func f() : Nat = 1
 '''
 
 [[case]]
@@ -1043,5 +1127,5 @@ source = '''
 switch x { case(null) { 0 }; case(?y){ y } };
 '''
 output = '''
-switch x { case null { 0 } case ?y { y } };
+switch x { case null { 0 } case ?y { y } }
 '''

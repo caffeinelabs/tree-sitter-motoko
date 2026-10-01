@@ -1,7 +1,8 @@
 //! The syntax rules, as edits to the source text located by the tree.
 
 use crate::Error;
-use crate::config::{Rules, Semicolons};
+use crate::config::{Rules, Semicolons, TrailingCommas};
+use crate::print::parts::{Family, list_of};
 use crate::tree::{Branch, Node, parse};
 
 struct Edit {
@@ -30,6 +31,14 @@ fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
     }
     if rules.unparen_patterns {
         out.push(("unparen-patterns", unparen_patterns));
+    }
+    if rules.semicolons == Semicolons::Minimal {
+        out.push(("semicolons", drop_trailing_semis));
+    }
+    match rules.trailing_commas {
+        TrailingCommas::Preserve => {}
+        TrailingCommas::Multiline => out.push(("trailing-commas", multiline_commas)),
+        TrailingCommas::Never => out.push(("trailing-commas", no_trailing_commas)),
     }
     out
 }
@@ -481,6 +490,87 @@ fn unparen_patterns(root: &Branch<'_>) -> Vec<Edit> {
             end: par.end,
             text: format!("{before}{text}{after}"),
         });
+    }
+    edits
+}
+
+/// A list's last item and the separator after it, if any: what a trailing-separator rule looks at.
+struct Tail<'n, 'a> {
+    list: &'n Branch<'a>,
+    items: usize,
+    last: &'n Node<'a>,
+    separator: Option<&'n Node<'a>>,
+}
+
+/// Every list of `family` with at least one item.
+fn tails<'n, 'a>(root: &'n Branch<'a>, family: &[Family]) -> Vec<Tail<'n, 'a>> {
+    let mut out = Vec::new();
+    for b in root.branches() {
+        let Some(list) = list_of(b).filter(|l| family.contains(&l.family)) else {
+            continue;
+        };
+        let sep = if list.family == Family::CommaSep { "," } else { ";" };
+        let inner: Vec<_> = b
+            .nodes()
+            .filter(|c| !c.is_token(list.open) && !c.is_token(list.close))
+            .collect();
+        let is_item = |c: &Node<'_>| !c.is_token(sep) && !crate::print::parts::is_comment(c);
+        let Some(i) = inner.iter().rposition(|c| is_item(c)) else {
+            continue;
+        };
+        out.push(Tail {
+            list: b,
+            items: inner.iter().filter(|c| is_item(c)).count(),
+            last: inner[i],
+            separator: inner[i + 1..].iter().copied().find(|c| c.is_token(sep)),
+        });
+    }
+    out
+}
+
+fn delete(n: &Node<'_>) -> Edit {
+    Edit {
+        start: n.start(),
+        end: n.end(),
+        text: String::new(),
+    }
+}
+
+/// `{ a; b; }` → `{ a; b }`: moc ignores a `;` after the last item, of a block, body, record, object or variant type, or file.
+fn drop_trailing_semis(root: &Branch<'_>) -> Vec<Edit> {
+    tails(root, &[Family::SemiSep, Family::SemiSep1])
+        .into_iter()
+        .filter_map(|t| t.separator.map(delete))
+        .collect()
+}
+
+/// `(a, b,)` → `(a, b)`: moc ignores a `,` after the last item.
+fn no_trailing_commas(root: &Branch<'_>) -> Vec<Edit> {
+    tails(root, &[Family::CommaSep])
+        .into_iter()
+        .filter_map(|t| t.separator.map(delete))
+        .collect()
+}
+
+/// A `,` after the last item of a list broken one item per line, as the printer lays it out, and none on a list on one line.
+/// A parenthesised single item never gets one, since `(x,)` reads as a one-tuple although moc reads it as `(x)`,
+/// and nor does a `<…>` list, whose `>` moc needs glued to the last item.
+fn multiline_commas(root: &Branch<'_>) -> Vec<Edit> {
+    let mut edits = Vec::new();
+    for t in tails(root, &[Family::CommaSep]) {
+        let list = list_of(t.list).expect("a list");
+        let broken = t.list.children.iter().any(Node::is_break);
+        let single_paren = t.items == 1 && list.open == "(";
+        let want = broken && !single_paren && !list.close_glued;
+        match (want, t.separator) {
+            (false, Some(sep)) => edits.push(delete(sep)),
+            (true, None) => edits.push(Edit {
+                start: t.last.end(),
+                end: t.last.end(),
+                text: ",".into(),
+            }),
+            _ => {}
+        }
     }
     edits
 }
