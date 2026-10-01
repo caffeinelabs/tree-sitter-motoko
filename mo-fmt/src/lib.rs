@@ -11,7 +11,9 @@ mod rewrite;
 pub mod tree;
 mod verify;
 
-pub use config::{Config, IndentWidth, Rules, Semicolons, Syntax, TrailingCommas};
+pub use config::{
+    BlockBlankLines, Config, Imports, IndentWidth, Rules, Semicolons, Syntax, TrailingCommas,
+};
 pub use tree::SyntaxError;
 
 #[derive(Debug)]

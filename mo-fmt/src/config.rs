@@ -75,6 +75,24 @@ pub enum TrailingCommas {
     Never,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum BlockBlankLines {
+    #[default]
+    Preserve,
+    /// No blank line just inside braces.
+    Trim,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Imports {
+    #[default]
+    Preserve,
+    /// Grouped packages, canisters, then local files, and sorted by path within each group.
+    Organize,
+}
+
 /// Declares each rule once: its `mo-fmt.toml` key in `Config`, and its value under each `syntax` preset in `Rules`.
 macro_rules! rules {
     ($($(#[$doc:meta])* $name:ident: $ty:ty = $preserve:expr, $moc2:expr;)*) => {
@@ -127,6 +145,8 @@ rules! {
     do_blocks: bool = false, true;
     semicolons: Semicolons = Semicolons::Preserve, Semicolons::Minimal;
     trailing_commas: TrailingCommas = TrailingCommas::Preserve, TrailingCommas::Preserve;
+    block_blank_lines: BlockBlankLines = BlockBlankLines::Preserve, BlockBlankLines::Preserve;
+    imports: Imports = Imports::Preserve, Imports::Preserve;
 }
 
 impl Config {

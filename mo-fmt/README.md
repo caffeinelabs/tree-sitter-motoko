@@ -50,15 +50,15 @@ mo-fmt --syntax moc2 --indent-width 4 --rule unparen-patterns=false .
 | [`do-blocks`](#do-blocks) | `true`, `false` | `true` | done |
 | [`semicolons`](#semicolons) | `preserve`, `minimal` | `minimal` | done |
 | [`trailing-commas`](#trailing-commas) | `preserve`, `multiline`, `never` | `preserve` | done |
-| [`block-blank-lines`](#block-blank-lines) | `preserve`, `trim` | `preserve` | planned |
-| [`imports`](#imports) | `preserve`, `organize` | `preserve` | planned |
+| [`block-blank-lines`](#block-blank-lines) | `preserve`, `trim` | `preserve` | done |
+| [`imports`](#imports) | `preserve`, `organize` | `preserve` | done |
 | [`func-bodies`](#func-bodies) | `preserve`, `block` | `preserve` | deferred |
 
-`moc2` leaves at `preserve` the rules that pick a style the target syntax doesn't imply. A planned rule isn't a key yet, so setting one is an error rather than silently doing nothing.
+`moc2` leaves at `preserve` the rules that pick a style the target syntax doesn't imply. `func-bodies` isn't a key until it's implemented, so setting it is an error rather than silently doing nothing.
 
 A rule set in `mo-fmt.toml` or by `--rule <name>=<value>` overrides the preset either way, so `moc2` can turn one rule off and `preserve` can turn one on. `--rule` spells values as the file does, without quotes.
 
-Each rule is safe on its own. The rules run in a fixed order: `trailing-commas` first, since `(x,)` → `(x)` can free a head of its parentheses, then the syntax rules with `brace-bodies` leading. The ones that need a braced body skip any construct that isn't braced yet.
+Each rule is safe on its own. The rules run in a fixed order: `imports` and `trailing-commas` first, since `(x,)` → `(x)` can free a head of its parentheses, then the syntax rules with `brace-bodies` leading. The ones that need a braced body skip any construct that isn't braced yet.
 
 #### `brace-bodies`
 
@@ -127,7 +127,7 @@ Map.add(
 
 #### `block-blank-lines`
 
-`trim` drops blank lines just inside the braces of a block or body.
+`trim` drops blank lines just inside the braces of a block, body, `switch`, record or type, as rustfmt does. Blank lines between items stay.
 
 ```motoko
 func f() {
@@ -145,17 +145,20 @@ func f() {
 
 #### `imports`
 
-`organize` groups imports by prefix (`ic:`, `canister:`, `mo:`, then relative paths) with a blank line between groups, and sorts each group by path. Comments among the imports stay with the import they precede.
+`organize` groups the imports at the top of the file into packages (`mo:`), canisters (`canister:`, `ic:`) and local files, in that order, with a blank line between groups, and sorts each group by path. That is external before local, as gofmt, isort and rustfmt group them. A comment stays with the import below it, or with the one it follows on the same line, and a comment apart from the first import by a blank line is the file's header and stays at the top.
 
 ```motoko
-import Text "mo:core/Text";
 import Utils "./utils";
+import Text "mo:core/Text";
+import Ledger "canister:ledger";
 import Array "mo:core/Array";
 ```
 
 ```motoko
 import Array "mo:core/Array";
 import Text "mo:core/Text";
+
+import Ledger "canister:ledger";
 
 import Utils "./utils";
 ```
@@ -175,7 +178,7 @@ import Utils "./utils";
 | `semi` | `semicolons`, which can drop them but not add them |
 | `trailingComma` | `trailing-commas` |
 | `motokoRemoveLinesAroundCodeBlocks` | `block-blank-lines = "trim"` |
-| `motokoOrganizeImports` | `imports = "organize"` |
+| `motokoOrganizeImports` | `imports = "organize"`, with packages first rather than canisters |
 
 ## Development
 
