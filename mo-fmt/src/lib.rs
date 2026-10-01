@@ -4,14 +4,14 @@ use std::borrow::Cow;
 
 pub mod config;
 mod doc;
-mod moc2;
 mod print;
+mod rewrite;
 // Exposed for the tests; not a stable API.
 #[doc(hidden)]
 pub mod tree;
 mod verify;
 
-pub use config::{Config, IndentWidth, Syntax};
+pub use config::{Config, IndentWidth, Rules, Semicolons, Syntax};
 pub use tree::SyntaxError;
 
 #[derive(Debug)]
@@ -85,10 +85,7 @@ fn format_here(source: &str, config: &Config) -> Result<String, Error> {
     } else {
         body.into()
     };
-    let source: Cow<'_, str> = match config.syntax {
-        Syntax::Preserve => normalized,
-        Syntax::Moc2 => moc2::rewrite(&normalized)?.into(),
-    };
+    let source: Cow<'_, str> = rewrite::rewrite(&normalized, &config.rules())?.into();
     let root = tree::parse(&source).map_err(Error::Syntax)?;
     let printed = doc::print(print::print(&root, &source), config.indent_width.get());
     verify::verify(&root, &source, &printed).map_err(Error::Internal)?;

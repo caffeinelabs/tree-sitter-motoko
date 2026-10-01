@@ -1,6 +1,7 @@
-//! The `moc2` rewrite: legacy syntax to the moc 2.0 forms, as edits to the source text located by the tree.
+//! The syntax rules, as edits to the source text located by the tree.
 
 use crate::Error;
+use crate::config::{Rules, Semicolons};
 use crate::tree::{Branch, Node, parse};
 
 struct Edit {
@@ -11,39 +12,50 @@ struct Edit {
 
 type Rule = fn(&Branch<'_>) -> Vec<Edit>;
 
-const RULES: &[Rule] = &[
-    brace_bodies,
-    glue_head_calls,
-    unparen_heads,
-    drop_case_semis,
-    unwrap_case_patterns,
-];
+/// Each rule's passes, by its `mo-fmt.toml` key, in the order they run.
+fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
+    let mut out: Vec<(&'static str, Rule)> = Vec::new();
+    if rules.brace_bodies {
+        out.push(("brace-bodies", brace_bodies));
+    }
+    if rules.unparen_heads {
+        out.push(("unparen-heads", glue_head_calls));
+        out.push(("unparen-heads", unparen_heads));
+    }
+    if rules.semicolons == Semicolons::Minimal {
+        out.push(("semicolons", drop_case_semis));
+    }
+    if rules.unparen_patterns {
+        out.push(("unparen-patterns", unwrap_case_patterns));
+    }
+    out
+}
 
-// Every rule removes what it matches, so a real file settles in a few rounds.
+// Every pass removes what it matches, so a real file settles in a few rounds.
 const MAX_ROUNDS: usize = 100;
 
-/// Rewrites legacy syntax to the moc 2.0 forms. Each rule runs to a fixed point before the next, since later rules need braced bodies.
+/// Applies the rules. Each pass runs to a fixed point before the next, since later ones need braced bodies.
 /// `Error::Syntax` if the input doesn't parse, and `Error::Internal` if a rule breaks it or never settles.
-pub fn rewrite(source: &str) -> Result<String, Error> {
+pub fn rewrite(source: &str, rules: &Rules) -> Result<String, Error> {
     let mut text = source.to_string();
-    for rule in RULES {
+    for (name, pass) in passes(rules) {
         for round in 0.. {
             if round == MAX_ROUNDS {
-                return Err(Error::Internal("a moc2 rule did not settle".into()));
+                return Err(Error::Internal(format!("the `{name}` rule did not settle")));
             }
             let root = parse(&text).map_err(|e| {
                 if text == source {
                     Error::Syntax(e)
                 } else {
                     Error::Internal(format!(
-                        "the moc2 rewrite produced code that does not parse ({e})"
+                        "the `{name}` rule produced code that does not parse ({e})"
                     ))
                 }
             })?;
             let Node::Branch(root) = &root else {
                 unreachable!("the root is a branch")
             };
-            let edits = rule(root);
+            let edits = pass(root);
             if edits.is_empty() {
                 break;
             }
