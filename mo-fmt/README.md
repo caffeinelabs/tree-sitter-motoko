@@ -36,7 +36,158 @@ Flags override the file key by key, so a tool can pass the options without writi
 mo-fmt --syntax moc2 --indent-width 4 .
 ```
 
-`moc2` braces every control body, drops the parentheses around control heads and case patterns where moc 2.0 allows it, and drops the `;` after a braced `case` arm. It may change between minor versions while moc 2.0 is in beta.
+`syntax` is a preset over the rules below: `preserve` sets every rule to off or `preserve`, and `moc2` rewrites legacy syntax towards the [target syntax](https://github.com/caffeinelabs/motoko/issues/6352). `moc2` may change between minor versions while moc 2.0 is in beta.
+
+### Rules
+
+| Rule | Values | In `moc2` | Status |
+|---|---|---|---|
+| [`brace-bodies`](#brace-bodies) | on, off | on | partly done |
+| [`unparen-heads`](#unparen-heads) | on, off | on | partly done |
+| [`unparen-patterns`](#unparen-patterns) | on, off | on | partly done |
+| [`do-blocks`](#do-blocks) | on, off | on | planned |
+| [`semicolons`](#semicolons) | `preserve`, `minimal` | `minimal` | partly done |
+| [`trailing-commas`](#trailing-commas) | `preserve`, `multiline`, `never` | `preserve` | planned |
+| [`block-blank-lines`](#block-blank-lines) | `preserve`, `trim` | `preserve` | planned |
+| [`imports`](#imports) | `preserve`, `organize` | `preserve` | planned |
+| [`func-bodies`](#func-bodies) | `preserve`, `block` | `preserve` | deferred |
+
+`moc2` leaves at `preserve` the rules that pick a style the target syntax doesn't imply.
+
+Planned: a `mo-fmt.toml` key per rule and a `--rule <name>=<value>` flag, overriding the preset either way, so `moc2` can turn one rule off and `preserve` can turn one on:
+
+```toml
+syntax = "moc2"
+unparen-patterns = false
+trailing-commas = "multiline"
+```
+
+Each rule is safe on its own. The rules run in a fixed order, `brace-bodies` first, and the ones that need a braced body skip any construct that isn't braced yet.
+
+#### `brace-bodies`
+
+Every control body becomes a braced block: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms. `else if` chains are kept.
+
+```motoko
+if (n == 0) 1 else n * fact(n - 1)
+if (n == 0) { 1 } else { n * fact(n - 1) }
+```
+
+Not yet: `try`, `finally`, `async` and `async*` bodies, `try f() catch e { … }` → `try { f() } catch e { … }`.
+
+#### `unparen-heads`
+
+Drops the parentheses around an `if`, `while` or `switch` head, and around `for (p in e)`. A spaced call in a head, `f x`, becomes `f(x)` when that is all that keeps the parentheses. Records, tuples, statement-like and multi-line heads keep them.
+
+```motoko
+switch (map.get(key)) { … }
+switch map.get(key) { … }
+```
+
+Not yet: the condition of `loop { … } while (c)`.
+
+#### `unparen-patterns`
+
+Drops the parentheses around a `case` pattern, moving a variant's payload into `#tag(…)`. Tuple patterns keep them.
+
+```motoko
+case (#ok v) { … }
+case #ok(v) { … }
+```
+
+Not yet: `catch (e)` → `catch e`, and `or`, `and` and `: T` patterns, `case (0 or 1)` → `case 0 or 1`.
+
+#### `do-blocks`
+
+`let … else`, `label`, `debug`, `await`, `ignore`, `assert`, `throw` and the condition of `loop … while` take an expression, not a body. moc reads a bare `{ … }` after them as a block today, but the target syntax reads it as a record, so the block is spelled `do { … }`, which means the same in both.
+
+```motoko
+let ?user = users.get(id) else { return #err("unknown") };
+let ?user = users.get(id) else do { return #err("unknown") };
+```
+
+#### `semicolons`
+
+`minimal` drops every `;` moc doesn't need: the one after a braced `case` arm, since the next `case` already ends it, and the one after the last item of a block, body, record, object or variant type, or file. A `;` between two items stays.
+
+```motoko
+switch x { case #a { a() }; case #b { b(); }; }
+switch x { case #a { a() } case #b { b() } }
+```
+
+Not yet: the `;` after the last item.
+
+#### `trailing-commas`
+
+A `,` after the last item of a tuple, argument list, array, pattern or type list. `multiline` puts one on a list broken one item per line and none on a list on one line, and `never` drops them all. `(x,)` means the same as `(x)` in moc, so dropping one never changes the code.
+
+```motoko
+Map.add(
+  map,
+  key,
+  value
+)
+```
+
+```motoko
+Map.add(
+  map,
+  key,
+  value,
+)
+```
+
+#### `block-blank-lines`
+
+`trim` drops blank lines just inside the braces of a block or body.
+
+```motoko
+func f() {
+
+  a();
+
+}
+```
+
+```motoko
+func f() {
+  a();
+}
+```
+
+#### `imports`
+
+`organize` groups imports by prefix (`ic:`, `canister:`, `mo:`, then relative paths) with a blank line between groups, and sorts each group by path. Comments among the imports stay with the import they precede.
+
+```motoko
+import Text "mo:core/Text";
+import Utils "./utils";
+import Array "mo:core/Array";
+```
+
+```motoko
+import Array "mo:core/Array";
+import Text "mo:core/Text";
+
+import Utils "./utils";
+```
+
+#### `func-bodies`
+
+`preserve` (the default, also in `moc2`) or `block`, which rewrites `func f(x) : T = e` → `func f(x) : T { e }` and `func x = x + 1` → `func(x) { x + 1 }`. Deferred until moc can forward a computed `async` without `= e`.
+
+### From prettier-plugin-motoko
+
+| prettier option | mo-fmt |
+|---|---|
+| `tabWidth` | `indent-width` |
+| `useTabs` | none: spaces only |
+| `printWidth` | none: line breaks are kept as written |
+| `bracketSpacing` | none: always `{ x = 1 }` |
+| `semi` | `semicolons`, which can drop them but not add them |
+| `trailingComma` | `trailing-commas` |
+| `motokoRemoveLinesAroundCodeBlocks` | `block-blank-lines = "trim"` |
+| `motokoOrganizeImports` | `imports = "organize"` |
 
 ## Development
 
@@ -64,6 +215,5 @@ Releases are cut by pushing a `mo-fmt-vX.Y.Z` tag matching `Cargo.toml`. `.githu
 - Packed lists: a list broken anywhere goes one item per line, which explodes packed rows such as numeric tables.
 - Spacing inside a line is only partly normalised: `x:T`, `<K,V>` and `->` are kept as written.
 - `moc2` rewrites `f x` to `f(x)` only in control heads, where moc 2.0 requires it.
-- moc 2.0.0-beta.2 accepts `or`, `and` and `: T` case patterns without parentheses; `moc2` still keeps them.
 - Formatting files in parallel, and a wasm build for editors.
 - Node kinds are strings (`"if_exp"`), so a typo disables a rule silently until a test notices. `build.rs` could generate constants from `node-types.json`.
