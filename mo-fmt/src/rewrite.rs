@@ -18,6 +18,9 @@ fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
     if rules.brace_bodies {
         out.push(("brace-bodies", brace_bodies));
     }
+    if rules.do_blocks {
+        out.push(("do-blocks", do_blocks));
+    }
     if rules.unparen_heads {
         out.push(("unparen-heads", glue_head_calls));
         out.push(("unparen-heads", unparen_heads));
@@ -26,7 +29,7 @@ fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
         out.push(("semicolons", drop_case_semis));
     }
     if rules.unparen_patterns {
-        out.push(("unparen-patterns", unwrap_case_patterns));
+        out.push(("unparen-patterns", unparen_patterns));
     }
     out
 }
@@ -114,6 +117,14 @@ fn is_block(b: Option<&Branch<'_>>) -> bool {
     b.is_some_and(|b| b.kind == "block_exp")
 }
 
+/// The expression right after `keyword`, for the constructs whose operand has no field.
+fn after<'n, 'a>(n: &'n Branch<'a>, keyword: &str) -> Option<&'n Branch<'a>> {
+    n.nodes()
+        .skip_while(|c| !c.is_token(keyword))
+        .skip(1)
+        .find_map(|c| c.as_branch().filter(|b| !b.extra))
+}
+
 fn brace(b: &Branch<'_>) -> [Edit; 2] {
     [
         Edit {
@@ -129,7 +140,8 @@ fn brace(b: &Branch<'_>) -> [Edit; 2] {
     ]
 }
 
-/// Every control body gets braces: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms.
+/// Every control body gets braces: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms,
+/// and `try`, `finally`, `async` and `async*` bodies.
 fn brace_bodies(root: &Branch<'_>) -> Vec<Edit> {
     let mut edits = Vec::new();
     for n in root.branches() {
@@ -139,6 +151,10 @@ fn brace_bodies(root: &Branch<'_>) -> Vec<Edit> {
                 n.field("else").filter(|e| e.kind != "if_exp"),
             ],
             "while_exp" | "for_exp" | "loop_exp" | "case" | "catch" => vec![n.field("body")],
+            "try_exp" => vec![after(n, "try")],
+            "finally" => vec![after(n, "finally")],
+            "async_exp" => vec![after(n, "async")],
+            "asyncstar_exp" => vec![after(n, "async*")],
             _ => continue,
         };
         for body in bodies.into_iter().flatten() {
@@ -146,6 +162,40 @@ fn brace_bodies(root: &Branch<'_>) -> Vec<Edit> {
                 edits.extend(brace(body));
             }
         }
+    }
+    edits
+}
+
+/// `else { … }` → `else do { … }`, and likewise after every keyword whose operand is an expression rather than a body,
+/// where the target syntax reads `{` as a record.
+fn do_blocks(root: &Branch<'_>) -> Vec<Edit> {
+    let mut edits = Vec::new();
+    for n in root.branches() {
+        let operand = match n.kind {
+            "let_else_dec" => after(n, "else"),
+            "loop_exp" => n.field("condition"),
+            "label_exp" => n
+                .nodes()
+                .filter_map(|c| c.as_branch().filter(|b| !b.extra))
+                .last(),
+            "debug_exp" => after(n, "debug"),
+            "ignore_exp" => after(n, "ignore"),
+            "assert_exp" => after(n, "assert"),
+            "throw_exp" => after(n, "throw"),
+            "await_exp" => after(n, "await"),
+            "awaitstar_exp" => after(n, "await*"),
+            "awaitquest_exp" => after(n, "await?"),
+            _ => continue,
+        };
+        let Some(block) = operand.filter(|b| is_block(Some(b))) else {
+            continue;
+        };
+        let (before, _) = padding(n, index_of(n, block), index_of(n, block));
+        edits.push(Edit {
+            start: block.start,
+            end: block.start,
+            text: format!("{before}do "),
+        });
     }
     edits
 }
@@ -273,12 +323,13 @@ fn glue_head_calls(root: &Branch<'_>) -> Vec<Edit> {
     edits
 }
 
-/// `if (c) {` → `if c {`, likewise `while` and `switch`, and `for (p in e) {` → `for p in e {`. Only once every body is braced.
+/// `if (c) {` → `if c {`, likewise `while`, `switch` and `loop { … } while (c)`, and `for (p in e) {` → `for p in e {`.
+/// Only once every body is braced.
 fn unparen_heads(root: &Branch<'_>) -> Vec<Edit> {
     let mut edits = Vec::new();
     for n in root.branches() {
         match n.kind {
-            "if_exp" | "while_exp" | "switch_exp" => {
+            "if_exp" | "while_exp" | "switch_exp" | "loop_exp" => {
                 let name = if n.kind == "switch_exp" {
                     "scrutinee"
                 } else {
@@ -299,7 +350,7 @@ fn unparen_heads(root: &Branch<'_>) -> Vec<Edit> {
                         continue;
                     }
                 }
-                if n.kind == "while_exp" && !is_block(n.field("body")) {
+                if matches!(n.kind, "while_exp" | "loop_exp") && !is_block(n.field("body")) {
                     continue;
                 }
                 let i = index_of(n, par);
@@ -373,11 +424,43 @@ const BARE_PATTERNS: &[&str] = &[
     "tup_pat",
 ];
 
-/// `case (p) {` → `case p {`, and `case (#t x) {` → `case #t(x) {`.
-fn unwrap_case_patterns(root: &Branch<'_>) -> Vec<Edit> {
+/// The pattern as a case pattern spells it without outer parentheses: a variant's payload goes in `#tag(…)`,
+/// and `or`, `and` and `: T` take each operand so. `None` for a pattern that needs its parentheses.
+fn bare_pattern(p: &Branch<'_>) -> Option<String> {
+    if BARE_PATTERNS.contains(&p.kind) {
+        return Some(p.text.to_string());
+    }
+    match p.kind {
+        "tag_pat" => {
+            let parts: Vec<_> = p.nodes().collect();
+            match parts[..] {
+                [tag] => Some(tag.text().to_string()),
+                [tag, Node::Branch(payload)] if payload.kind == "tup_pat" => {
+                    Some(format!("{}{}", tag.text(), payload.text))
+                }
+                [tag, payload] => Some(format!("{}({})", tag.text(), payload.text())),
+                _ => None,
+            }
+        }
+        "alt_pat" | "and_pat" | "annot_pat" => {
+            let mut out = String::new();
+            for c in &p.children {
+                match c {
+                    Node::Branch(b) if b.kind.ends_with("_pat") => out.push_str(&bare_pattern(b)?),
+                    _ => out.push_str(c.text()),
+                }
+            }
+            Some(out)
+        }
+        _ => None,
+    }
+}
+
+/// `case (p) {` → `case p {`, `case (#t x) {` → `case #t(x) {`, and likewise `catch (e) {` → `catch e {`.
+fn unparen_patterns(root: &Branch<'_>) -> Vec<Edit> {
     let mut edits = Vec::new();
     for n in root.branches() {
-        if n.kind != "case" || !is_block(n.field("body")) {
+        if !matches!(n.kind, "case" | "catch") || !is_block(n.field("body")) {
             continue;
         }
         let Some(par) = n.field("pattern").filter(|p| p.kind == "tup_pat") else {
@@ -387,31 +470,17 @@ fn unwrap_case_patterns(root: &Branch<'_>) -> Vec<Edit> {
         let [_, Node::Branch(pattern), _] = inner[..] else {
             continue;
         };
-        let text = if BARE_PATTERNS.contains(&pattern.kind) {
-            pattern.text.to_string()
-        } else if pattern.kind == "tag_pat" {
-            let parts: Vec<_> = pattern.nodes().collect();
-            match parts[..] {
-                [tag] => tag.text().to_string(),
-                [tag, Node::Branch(payload), ..] if payload.kind == "tup_pat" => {
-                    format!("{}{}", tag.text(), payload.text)
-                }
-                [tag, payload, ..] => format!("{}({})", tag.text(), payload.text()),
-                [] => continue,
-            }
-        } else {
+        let Some(text) = bare_pattern(pattern).filter(|t| !t.contains('\n')) else {
             continue;
         };
-        if !text.contains('\n') {
-            // `case(null)` has no gap after `case` to keep the two apart.
-            let i = index_of(n, par);
-            let (before, after) = padding(n, i, i);
-            edits.push(Edit {
-                start: par.start,
-                end: par.end,
-                text: format!("{before}{text}{after}"),
-            });
-        }
+        // `case(null)` has no gap after `case` to keep the two apart.
+        let i = index_of(n, par);
+        let (before, after) = padding(n, i, i);
+        edits.push(Edit {
+            start: par.start,
+            end: par.end,
+            text: format!("{before}{text}{after}"),
+        });
     }
     edits
 }

@@ -249,23 +249,91 @@ for x in xs.values() { f(x) };
 '''
 
 [[case]]
-why = "moc2: loop keeps its trailing condition"
+why = "moc2: loop keeps its trailing condition, unparenthesized"
 config = { syntax = "moc2" }
 source = '''
 loop f() while (c);
+loop { f() } while (g x);
 '''
 output = '''
-loop { f() } while (c);
+loop { f() } while c;
+loop { f() } while (g x);
 '''
 
 [[case]]
-why = "moc2: catch"
+why = "moc2: try, catch and finally"
 config = { syntax = "moc2" }
 source = '''
 try f() catch e g();
+try f() catch (e : Error) { g() } finally h();
 '''
 output = '''
-try f() catch e { g() };
+try { f() } catch e { g() };
+try { f() } catch e : Error { g() } finally { h() };
+'''
+
+[[case]]
+why = "moc2: async bodies, with or without a parenthetical"
+config = { syntax = "moc2" }
+source = '''
+let a = async 42;
+let b = async* f();
+let c = (with cycles = 1) async g();
+let d = async { 1 };
+'''
+output = '''
+let a = async { 42 };
+let b = async* { f() };
+let c = (with cycles = 1) async { g() };
+let d = async { 1 };
+'''
+
+[[case]]
+why = "moc2: a block after an operator-like keyword is spelled `do { … }`"
+config = { syntax = "moc2" }
+source = '''
+let ?u = get(id) else { return null };
+let ?v = get(id) else return null;
+label l : Nat { break l 1 };
+label k while (c) { break k };
+debug { log() };
+ignore { x };
+assert { true };
+throw { e };
+await { f() };
+loop { } while { c };
+'''
+output = '''
+let ?u = get(id) else do { return null };
+let ?v = get(id) else return null;
+label l : Nat do { break l 1 };
+label k while c { break k };
+debug do { log() };
+ignore do { x };
+assert do { true };
+throw do { e };
+await do { f() };
+loop {} while do { c };
+'''
+
+[[case]]
+why = "moc2: a glued block after a keyword gets its space"
+config = { syntax = "moc2" }
+source = '''
+let ?u = get(id) else{ return null };
+'''
+output = '''
+let ?u = get(id) else do { return null };
+'''
+
+[[case]]
+why = "moc2: `or`, `and` and `: T` patterns drop their parentheses, payloads and all"
+config = { syntax = "moc2" }
+source = '''
+switch x { case (0 or 1) { a }; case (#a v or #b v) { v }; case (?y and z) { z }; case (n : Nat) { n }; case (#c (p, q) : T) { p } };
+'''
+output = '''
+switch x { case 0 or 1 { a } case #a(v) or #b(v) { v } case ?y and z { z } case n : Nat { n } case #c(p, q) : T { p } };
 '''
 
 [[case]]
@@ -436,16 +504,6 @@ switch x {
     b
   )) {}
 };
-'''
-
-[[case]]
-why = "moc2: keeps an or-pattern as written"
-config = { syntax = "moc2" }
-source = '''
-switch x { case (#a or #b) { 1 } };
-'''
-output = '''
-switch x { case (#a or #b) { 1 } };
 '''
 
 [[case]]

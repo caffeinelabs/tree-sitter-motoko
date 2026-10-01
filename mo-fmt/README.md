@@ -44,10 +44,10 @@ mo-fmt --syntax moc2 --indent-width 4 --rule unparen-patterns=false .
 
 | Rule | Values | In `moc2` | Status |
 |---|---|---|---|
-| [`brace-bodies`](#brace-bodies) | `true`, `false` | `true` | partly done |
-| [`unparen-heads`](#unparen-heads) | `true`, `false` | `true` | partly done |
-| [`unparen-patterns`](#unparen-patterns) | `true`, `false` | `true` | partly done |
-| [`do-blocks`](#do-blocks) | `true`, `false` | `true` | planned |
+| [`brace-bodies`](#brace-bodies) | `true`, `false` | `true` | done |
+| [`unparen-heads`](#unparen-heads) | `true`, `false` | `true` | done |
+| [`unparen-patterns`](#unparen-patterns) | `true`, `false` | `true` | done |
+| [`do-blocks`](#do-blocks) | `true`, `false` | `true` | done |
 | [`semicolons`](#semicolons) | `preserve`, `minimal` | `minimal` | partly done |
 | [`trailing-commas`](#trailing-commas) | `preserve`, `multiline`, `never` | `preserve` | planned |
 | [`block-blank-lines`](#block-blank-lines) | `preserve`, `trim` | `preserve` | planned |
@@ -62,36 +62,30 @@ Each rule is safe on its own. The rules run in a fixed order, `brace-bodies` fir
 
 #### `brace-bodies`
 
-Every control body becomes a braced block: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms. `else if` chains are kept.
+Every control body becomes a braced block: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms, and `try`, `finally`, `async` and `async*` bodies. `else if` chains are kept.
 
 ```motoko
 if (n == 0) 1 else n * fact(n - 1)
 if (n == 0) { 1 } else { n * fact(n - 1) }
 ```
 
-Not yet: `try`, `finally`, `async` and `async*` bodies, `try f() catch e { … }` → `try { f() } catch e { … }`.
-
 #### `unparen-heads`
 
-Drops the parentheses around an `if`, `while` or `switch` head, and around `for (p in e)`. A spaced call in a head, `f x`, becomes `f(x)` when that is all that keeps the parentheses. Records, tuples, statement-like and multi-line heads keep them.
+Drops the parentheses around an `if`, `while` or `switch` head, around `for (p in e)`, and around the condition of `loop { … } while (c)`. A spaced call in a head, `f x`, becomes `f(x)` when that is all that keeps the parentheses. Records, tuples, statement-like and multi-line heads keep them.
 
 ```motoko
 switch (map.get(key)) { … }
 switch map.get(key) { … }
 ```
 
-Not yet: the condition of `loop { … } while (c)`.
-
 #### `unparen-patterns`
 
-Drops the parentheses around a `case` pattern, moving a variant's payload into `#tag(…)`. Tuple patterns keep them.
+Drops the parentheses around a `case` or `catch` pattern, moving a variant's payload into `#tag(…)`, and likewise for each side of an `or`, `and` or `: T` pattern: `case (#a x or #b x)` → `case #a(x) or #b(x)`. Tuple patterns keep them.
 
 ```motoko
 case (#ok v) { … }
 case #ok(v) { … }
 ```
-
-Not yet: `catch (e)` → `catch e`, and `or`, `and` and `: T` patterns, `case (0 or 1)` → `case 0 or 1`.
 
 #### `do-blocks`
 
