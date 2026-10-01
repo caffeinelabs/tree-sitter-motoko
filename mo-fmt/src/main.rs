@@ -93,6 +93,7 @@ fn main() -> ExitCode {
     files.retain(|f| seen.insert(std::fs::canonicalize(f).unwrap_or_else(|_| f.clone())));
 
     let mut changed = 0;
+    let mut errors = 0;
     let mut out = std::io::stdout().lock();
     for file in &files {
         match format_file(file, &config, args.check) {
@@ -103,20 +104,32 @@ fn main() -> ExitCode {
             }
             Err(message) => {
                 eprintln!("{message}");
+                errors += 1;
                 failed = true;
             }
         }
     }
 
-    let noun = if files.len() == 1 { "file" } else { "files" };
+    let total = files.len();
+    let noun = if total == 1 { "file" } else { "files" };
+    // A file that failed is neither formatted nor in need of it, so `--check` mustn't call it formatted.
+    let failures = match errors {
+        0 => String::new(),
+        n => format!("; {n} failed to format"),
+    };
     let _ = if !args.check {
-        writeln!(out, "Formatted {changed} of {} {noun}.", files.len())
-    } else if changed == 0 && files.len() == 1 {
+        writeln!(out, "Formatted {changed} of {total} {noun}{failures}.")
+    } else if changed == 0 && errors > 0 {
+        writeln!(out, "{errors} of {total} {noun} failed to format.")
+    } else if changed == 0 && total == 1 {
         writeln!(out, "The file is formatted.")
     } else if changed == 0 {
-        writeln!(out, "All {} files are formatted.", files.len())
+        writeln!(out, "All {total} files are formatted.")
     } else {
-        writeln!(out, "{changed} of {} {noun} need formatting.", files.len())
+        writeln!(
+            out,
+            "{changed} of {total} {noun} need formatting{failures}."
+        )
     };
     if failed {
         ExitCode::from(2)

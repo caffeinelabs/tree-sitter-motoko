@@ -179,13 +179,29 @@ fn flags_override_mo_fmt_toml() {
 #[test]
 fn a_file_that_fails_to_parse_is_reported_and_the_rest_are_formatted() {
     let dir = project(&[("A.mo", "let x = ;\n"), ("B.mo", UNFORMATTED)]);
-    let (code, _, stderr) = run(&dir, &["A.mo", "B.mo"], "");
-    assert_eq!(code, 2);
+    let error = "A.mo:1:7: unexpected input\n  |\n1 | let x = ;\n  |       ^\n";
     assert_eq!(
-        stderr,
-        "A.mo:1:7: unexpected input\n  |\n1 | let x = ;\n  |       ^\n"
+        run(&dir, &["--check", "A.mo", "B.mo"], ""),
+        (
+            2,
+            "B.mo\n1 of 2 files need formatting; 1 failed to format.\n".into(),
+            error.into()
+        )
+    );
+    assert_eq!(
+        run(&dir, &["A.mo", "B.mo"], ""),
+        (
+            2,
+            "B.mo\nFormatted 1 of 2 files; 1 failed to format.\n".into(),
+            error.into()
+        )
     );
     assert_eq!(read(&dir, "B.mo"), FORMATTED);
+    // Not "All 2 files are formatted."
+    assert_eq!(
+        run(&dir, &["--check", "A.mo", "B.mo"], ""),
+        (2, "1 of 2 files failed to format.\n".into(), error.into())
+    );
 }
 
 #[test]
