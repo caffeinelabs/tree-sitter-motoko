@@ -13,9 +13,16 @@ struct Edit {
 
 type Rule = fn(&Branch<'_>) -> Vec<Edit>;
 
-/// Each rule's passes, by its `mo-fmt.toml` key, in the order they run.
+/// Each rule's passes, by its `mo-fmt.toml` key, in the order they run: commas first, since `(x,)` → `(x)` can free
+/// a head or pattern of its parentheses, then the syntax rules, braces first since the others need braced bodies,
+/// and last the trailing `;`, which the others may leave.
 fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
     let mut out: Vec<(&'static str, Rule)> = Vec::new();
+    match rules.trailing_commas {
+        TrailingCommas::Preserve => {}
+        TrailingCommas::Multiline => out.push(("trailing-commas", multiline_commas)),
+        TrailingCommas::Never => out.push(("trailing-commas", no_trailing_commas)),
+    }
     if rules.brace_bodies {
         out.push(("brace-bodies", brace_bodies));
     }
@@ -34,11 +41,6 @@ fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
     }
     if rules.semicolons == Semicolons::Minimal {
         out.push(("semicolons", drop_trailing_semis));
-    }
-    match rules.trailing_commas {
-        TrailingCommas::Preserve => {}
-        TrailingCommas::Multiline => out.push(("trailing-commas", multiline_commas)),
-        TrailingCommas::Never => out.push(("trailing-commas", no_trailing_commas)),
     }
     out
 }
@@ -509,7 +511,11 @@ fn tails<'n, 'a>(root: &'n Branch<'a>, family: &[Family]) -> Vec<Tail<'n, 'a>> {
         let Some(list) = list_of(b).filter(|l| family.contains(&l.family)) else {
             continue;
         };
-        let sep = if list.family == Family::CommaSep { "," } else { ";" };
+        let sep = if list.family == Family::CommaSep {
+            ","
+        } else {
+            ";"
+        };
         let inner: Vec<_> = b
             .nodes()
             .filter(|c| !c.is_token(list.open) && !c.is_token(list.close))
