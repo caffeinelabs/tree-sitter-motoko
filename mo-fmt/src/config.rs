@@ -109,10 +109,12 @@ macro_rules! rules {
 rules! {
     /// Every control body becomes a braced block.
     brace_bodies: bool = false, true;
-    /// Drops the parentheses around a control head.
+    /// Drops the parentheses around a control head and a `loop … while` condition.
     unparen_heads: bool = false, true;
-    /// Drops the parentheses around a `case` pattern.
+    /// Drops the parentheses around a `case` or `catch` pattern.
     unparen_patterns: bool = false, true;
+    /// A block where the target syntax reads `{` as a record is spelled `do { … }`.
+    do_blocks: bool = false, true;
     semicolons: Semicolons = Semicolons::Preserve, Semicolons::Minimal;
 }
 
