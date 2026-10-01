@@ -1,7 +1,7 @@
 //! The syntax rules, as edits to the source text located by the tree.
 
 use crate::Error;
-use crate::config::{Rules, Semicolons, TrailingCommas};
+use crate::config::{BlockBlankLines, Imports, Rules, Semicolons, TrailingCommas};
 use crate::print::parts::{Family, list_of};
 use crate::tree::{Branch, Node, parse};
 
@@ -13,11 +13,14 @@ struct Edit {
 
 type Rule = fn(&Branch<'_>) -> Vec<Edit>;
 
-/// Each rule's passes, by its `mo-fmt.toml` key, in the order they run: commas first, since `(x,)` → `(x)` can free
-/// a head or pattern of its parentheses, then the syntax rules, braces first since the others need braced bodies,
-/// and last the trailing `;`, which the others may leave.
+/// Each rule's passes, by its `mo-fmt.toml` key, in the order they run: imports and commas first, since `(x,)` → `(x)`
+/// can free a head or pattern of its parentheses, then the syntax rules, braces first since the others need braced
+/// bodies, and last the passes that only remove what the others may leave.
 fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
     let mut out: Vec<(&'static str, Rule)> = Vec::new();
+    if rules.imports == Imports::Organize {
+        out.push(("imports", organize_imports));
+    }
     match rules.trailing_commas {
         TrailingCommas::Preserve => {}
         TrailingCommas::Multiline => out.push(("trailing-commas", multiline_commas)),
@@ -39,6 +42,9 @@ fn passes(rules: &Rules) -> Vec<(&'static str, Rule)> {
     if rules.unparen_patterns {
         out.push(("unparen-patterns", unparen_patterns));
     }
+    if rules.block_blank_lines == BlockBlankLines::Trim {
+        out.push(("block-blank-lines", trim_block_blank_lines));
+    }
     if rules.semicolons == Semicolons::Minimal {
         out.push(("semicolons", drop_trailing_semis));
     }
@@ -52,6 +58,7 @@ const MAX_ROUNDS: usize = 100;
 /// `Error::Syntax` if the input doesn't parse, and `Error::Internal` if a rule breaks it or never settles.
 pub fn rewrite(source: &str, rules: &Rules) -> Result<String, Error> {
     let mut text = source.to_string();
+    let mut comments = None;
     for (name, pass) in passes(rules) {
         for round in 0.. {
             if round == MAX_ROUNDS {
@@ -69,6 +76,13 @@ pub fn rewrite(source: &str, rules: &Rules) -> Result<String, Error> {
             let Node::Branch(root) = &root else {
                 unreachable!("the root is a branch")
             };
+            // No rule touches a comment, and the printer's guard only sees the rewritten code, so check here.
+            let now = comments_of(root);
+            if comments.get_or_insert_with(|| now.clone()) != &now {
+                return Err(Error::Internal(format!(
+                    "the `{name}` rule lost or changed a comment"
+                )));
+            }
             let edits = pass(root);
             if edits.is_empty() {
                 break;
@@ -81,6 +95,23 @@ pub fn rewrite(source: &str, rules: &Rules) -> Result<String, Error> {
         }
     }
     Ok(text)
+}
+
+/// The comments' text, sorted, since `imports` may reorder them.
+fn comments_of(root: &Branch<'_>) -> Vec<String> {
+    fn walk(b: &Branch<'_>, out: &mut Vec<String>) {
+        for c in &b.children {
+            match c {
+                _ if crate::print::parts::is_comment(c) => out.push(c.text().to_string()),
+                Node::Branch(b) => walk(b, out),
+                _ => {}
+            }
+        }
+    }
+    let mut out = Vec::new();
+    walk(root, &mut out);
+    out.sort();
+    out
 }
 
 /// Applies the edits whose ranges don't overlap an earlier one; the rest wait for the next round.
@@ -579,4 +610,157 @@ fn multiline_commas(root: &Branch<'_>) -> Vec<Edit> {
         }
     }
     edits
+}
+
+/// `{\n\n  a;\n\n}` → `{\n  a;\n}`: no blank line just inside the braces of a block, body, `switch`, record or type.
+fn trim_block_blank_lines(root: &Branch<'_>) -> Vec<Edit> {
+    let mut edits = Vec::new();
+    for b in root.branches() {
+        if !(b.kind == "switch_exp" || list_of(b).is_some_and(|l| l.open == "{")) {
+            continue;
+        }
+        let kids = &b.children;
+        let open = kids.iter().position(|c| c.is_token("{"));
+        let close = kids.iter().rposition(|c| c.is_token("}"));
+        let gaps = [open.map(|i| i + 1), close.and_then(|i| i.checked_sub(1))];
+        for gap in gaps.into_iter().flatten().filter_map(|i| kids.get(i)) {
+            if let Node::Text(g) = gap
+                && g.text.matches('\n').count() >= 2
+            {
+                let indent = &g.text[g.text.rfind('\n').unwrap() + 1..];
+                edits.push(Edit {
+                    start: g.start,
+                    end: g.start + g.text.len(),
+                    text: format!("\n{indent}"),
+                });
+            }
+        }
+    }
+    edits
+}
+
+/// One import with the comments that go with it: those on the lines above it, and one after it on its line.
+struct ImportEntry<'a> {
+    above: Vec<(&'a str, bool)>,
+    import: &'a Branch<'a>,
+    semi: bool,
+    after: Option<&'a str>,
+}
+
+impl ImportEntry<'_> {
+    /// Packages, then canisters, then local files: external before local, as Go, Python and Rust group them.
+    fn group(&self) -> u8 {
+        let path = self.path();
+        if path.starts_with("mo:") {
+            0
+        } else if path.starts_with("canister:") || path.starts_with("ic:") {
+            1
+        } else {
+            2
+        }
+    }
+
+    fn path(&self) -> &str {
+        self.import
+            .nodes()
+            .filter(|c| c.ty() == Some("text_literal"))
+            .last()
+            .map_or("", |t| t.text().trim_matches('"'))
+    }
+
+    fn text(&self, semi: bool) -> String {
+        let mut out = String::new();
+        for (comment, own_line) in &self.above {
+            out.push_str(comment);
+            out.push_str(if *own_line { "\n" } else { " " });
+        }
+        out.push_str(self.import.text);
+        if semi {
+            out.push(';');
+        }
+        if let Some(comment) = self.after {
+            out.push(' ');
+            out.push_str(comment);
+        }
+        out
+    }
+}
+
+/// Groups the imports at the top of the file, with a blank line between groups, and sorts each group by path.
+/// A comment above the first import and apart from it by a blank line is the file's header and stays put.
+fn organize_imports(root: &Branch<'_>) -> Vec<Edit> {
+    if root.kind != "source_file" {
+        return Vec::new();
+    }
+    let mut entries: Vec<ImportEntry<'_>> = Vec::new();
+    let mut above: Vec<(&str, usize, bool)> = Vec::new();
+    let mut start = None;
+    let mut end = 0;
+    let mut gap = "";
+    for child in &root.children {
+        if let Node::Text(g) = child {
+            gap = g.text;
+            continue;
+        }
+        let on_new_line = gap.contains('\n');
+        // Above the first import, a blank line makes the comments before it the file's header, which stays put.
+        let header_break = entries.is_empty() && gap.matches('\n').count() >= 2;
+        gap = "";
+        if let Some(last) = above.last_mut() {
+            last.2 = on_new_line;
+        }
+        if crate::print::parts::is_comment(child) {
+            match entries.last_mut() {
+                Some(last) if !on_new_line && last.after.is_none() && above.is_empty() => {
+                    last.after = Some(child.text());
+                    end = child.end();
+                }
+                _ => {
+                    if header_break {
+                        above.clear();
+                    }
+                    above.push((child.text(), child.start(), true));
+                }
+            }
+            continue;
+        }
+        match child {
+            Node::Branch(b) if b.kind == "import" => {
+                if header_break {
+                    above.clear();
+                }
+                start.get_or_insert(above.first().map_or(b.start, |a| a.1));
+                entries.push(ImportEntry {
+                    above: above.drain(..).map(|(t, _, own)| (t, own)).collect(),
+                    import: b,
+                    semi: false,
+                    after: None,
+                });
+                end = b.end;
+            }
+            _ if child.is_token(";") && !entries.is_empty() && above.is_empty() => {
+                entries.last_mut().unwrap().semi = true;
+                end = child.end();
+            }
+            _ => break,
+        }
+    }
+    let Some(start) = start else {
+        return Vec::new();
+    };
+    let last_semi = entries.last().is_some_and(|e| e.semi);
+    let mut sorted: Vec<&ImportEntry<'_>> = entries.iter().collect();
+    sorted.sort_by(|a, b| (a.group(), a.path()).cmp(&(b.group(), b.path())));
+    let mut text = String::new();
+    for (i, e) in sorted.iter().enumerate() {
+        if i > 0 {
+            text.push_str(if sorted[i - 1].group() != e.group() {
+                "\n\n"
+            } else {
+                "\n"
+            });
+        }
+        text.push_str(&e.text(i + 1 < sorted.len() || last_semi));
+    }
+    vec![Edit { start, end, text }]
 }

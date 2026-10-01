@@ -473,6 +473,96 @@ let arr = [
 '''
 
 [[case]]
+why = "rules: `block-blank-lines = trim` drops blank lines just inside braces and keeps the ones between items"
+config = { block-blank-lines = "trim" }
+source = '''
+actor {
+
+  func g() {
+
+    a;
+
+    b
+
+  };
+
+  let e = {
+
+  };
+};
+'''
+output = '''
+actor {
+  func g() {
+    a;
+
+    b
+  };
+
+  let e = {};
+};
+'''
+
+[[case]]
+why = "rules: `imports = organize` groups packages, canisters and local files, sorts by path, and keeps each comment with its import"
+config = { imports = "organize" }
+source = '''
+// Copyright header
+
+import Utils "./utils"; // helpers
+import Text "mo:core/Text";
+// the ledger
+import Ledger "canister:ledger";
+import Array "mo:core/Array";
+
+import { f } "../lib/f";
+
+actor {};
+'''
+output = '''
+// Copyright header
+
+import Array "mo:core/Array";
+import Text "mo:core/Text";
+
+// the ledger
+import Ledger "canister:ledger";
+
+import { f } "../lib/f";
+import Utils "./utils"; // helpers
+
+actor {};
+'''
+
+[[case]]
+why = "rules: `imports = organize` keeps a file's last `;` as written"
+config = { imports = "organize" }
+source = '''
+import B "mo:b";
+import A "mo:a"
+'''
+output = '''
+import A "mo:a";
+import B "mo:b"
+'''
+
+[[case]]
+why = "rules: `imports = organize` keeps a comment that a blank line sets apart inside the imports"
+config = { imports = "organize" }
+source = '''
+import B "mo:b";
+
+// section
+
+import A "mo:a";
+'''
+output = '''
+// section
+import A "mo:a";
+import B "mo:b";
+'''
+
+[[case]]
 why = "rules: commas go first, so a head that `(x,)` → `(x)` frees loses its parentheses in the same run"
 config = { syntax = "moc2", trailing-commas = "never" }
 source = '''
