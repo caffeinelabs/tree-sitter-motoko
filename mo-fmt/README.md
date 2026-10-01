@@ -48,8 +48,8 @@ mo-fmt --syntax moc2 --indent-width 4 --rule unparen-patterns=false .
 | [`unparen-heads`](#unparen-heads) | `true`, `false` | `true` | done |
 | [`unparen-patterns`](#unparen-patterns) | `true`, `false` | `true` | done |
 | [`do-blocks`](#do-blocks) | `true`, `false` | `true` | done |
-| [`semicolons`](#semicolons) | `preserve`, `minimal` | `minimal` | partly done |
-| [`trailing-commas`](#trailing-commas) | `preserve`, `multiline`, `never` | `preserve` | planned |
+| [`semicolons`](#semicolons) | `preserve`, `minimal` | `minimal` | done |
+| [`trailing-commas`](#trailing-commas) | `preserve`, `multiline`, `never` | `preserve` | done |
 | [`block-blank-lines`](#block-blank-lines) | `preserve`, `trim` | `preserve` | planned |
 | [`imports`](#imports) | `preserve`, `organize` | `preserve` | planned |
 | [`func-bodies`](#func-bodies) | `preserve`, `block` | `preserve` | deferred |
@@ -105,11 +105,9 @@ switch x { case #a { a() }; case #b { b(); }; }
 switch x { case #a { a() } case #b { b() } }
 ```
 
-Not yet: the `;` after the last item.
-
 #### `trailing-commas`
 
-A `,` after the last item of a tuple, argument list, array, pattern or type list. `multiline` puts one on a list broken one item per line and none on a list on one line, and `never` drops them all. `(x,)` means the same as `(x)` in moc, so dropping one never changes the code.
+A `,` after the last item of a tuple, argument list, array, pattern or type list. `multiline` puts one on a list broken one item per line and none on a list on one line, and `never` drops them all. `(x,)` means the same as `(x)` in moc, so dropping one never changes the code. `multiline` leaves two kinds of list without one: a single item in parentheses, since `(x,)` reads as a one-tuple, and a `<…>` list, whose `>` moc needs glued to the last item.
 
 ```motoko
 Map.add(

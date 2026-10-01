@@ -65,6 +65,16 @@ pub enum Semicolons {
     Minimal,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TrailingCommas {
+    #[default]
+    Preserve,
+    /// One after the last item of a list broken one item per line, none on a list on one line.
+    Multiline,
+    Never,
+}
+
 /// Declares each rule once: its `mo-fmt.toml` key in `Config`, and its value under each `syntax` preset in `Rules`.
 macro_rules! rules {
     ($($(#[$doc:meta])* $name:ident: $ty:ty = $preserve:expr, $moc2:expr;)*) => {
@@ -116,6 +126,7 @@ rules! {
     /// A block where the target syntax reads `{` as a record is spelled `do { … }`.
     do_blocks: bool = false, true;
     semicolons: Semicolons = Semicolons::Preserve, Semicolons::Minimal;
+    trailing_commas: TrailingCommas = TrailingCommas::Preserve, TrailingCommas::Preserve;
 }
 
 impl Config {
