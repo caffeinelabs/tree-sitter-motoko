@@ -12,6 +12,7 @@ mo-fmt src/main.mo lib/                      # some files and directories
 mo-fmt --check .                             # list what would change, and exit 1 if anything would
 mo-fmt --stdin-filepath src/main.mo < src/main.mo   # format stdin, for editors
 mo-fmt --syntax moc2 .                       # override mo-fmt.toml; see Configuration
+mo-fmt --rule brace-bodies=false .           # override one rule; repeatable
 ```
 
 - Directories are searched for `.mo` files, honouring the project's `.gitignore` files (not your global one, so results are the same on every machine) and skipping `node_modules`, dot-directories such as `.mops`, and symlinks. A file named on the command line is always formatted, and a symlink named there is followed.
@@ -28,39 +29,34 @@ An optional `mo-fmt.toml` in the current directory:
 ```toml
 syntax = "preserve"   # or "moc2", which rewrites legacy syntax to the moc 2.0 forms
 indent-width = 2      # 1 to 16
+brace-bodies = true   # any of the rules below, overriding `syntax`
 ```
 
 Flags override the file key by key, so a tool can pass the options without writing one:
 
 ```sh
-mo-fmt --syntax moc2 --indent-width 4 .
+mo-fmt --syntax moc2 --indent-width 4 --rule unparen-patterns=false .
 ```
 
-`syntax` is a preset over the rules below: `preserve` sets every rule to off or `preserve`, and `moc2` rewrites legacy syntax towards the [target syntax](https://github.com/caffeinelabs/motoko/issues/6352). `moc2` may change between minor versions while moc 2.0 is in beta.
+`syntax` is a preset over the rules below: `preserve` sets every rule to `false` or `preserve`, and `moc2` rewrites legacy syntax towards the [target syntax](https://github.com/caffeinelabs/motoko/issues/6352). `moc2` may change between minor versions while moc 2.0 is in beta.
 
 ### Rules
 
 | Rule | Values | In `moc2` | Status |
 |---|---|---|---|
-| [`brace-bodies`](#brace-bodies) | on, off | on | partly done |
-| [`unparen-heads`](#unparen-heads) | on, off | on | partly done |
-| [`unparen-patterns`](#unparen-patterns) | on, off | on | partly done |
-| [`do-blocks`](#do-blocks) | on, off | on | planned |
+| [`brace-bodies`](#brace-bodies) | `true`, `false` | `true` | partly done |
+| [`unparen-heads`](#unparen-heads) | `true`, `false` | `true` | partly done |
+| [`unparen-patterns`](#unparen-patterns) | `true`, `false` | `true` | partly done |
+| [`do-blocks`](#do-blocks) | `true`, `false` | `true` | planned |
 | [`semicolons`](#semicolons) | `preserve`, `minimal` | `minimal` | partly done |
 | [`trailing-commas`](#trailing-commas) | `preserve`, `multiline`, `never` | `preserve` | planned |
 | [`block-blank-lines`](#block-blank-lines) | `preserve`, `trim` | `preserve` | planned |
 | [`imports`](#imports) | `preserve`, `organize` | `preserve` | planned |
 | [`func-bodies`](#func-bodies) | `preserve`, `block` | `preserve` | deferred |
 
-`moc2` leaves at `preserve` the rules that pick a style the target syntax doesn't imply.
+`moc2` leaves at `preserve` the rules that pick a style the target syntax doesn't imply. A planned rule isn't a key yet, so setting one is an error rather than silently doing nothing.
 
-Planned: a `mo-fmt.toml` key per rule and a `--rule <name>=<value>` flag, overriding the preset either way, so `moc2` can turn one rule off and `preserve` can turn one on:
-
-```toml
-syntax = "moc2"
-unparen-patterns = false
-trailing-commas = "multiline"
-```
+A rule set in `mo-fmt.toml` or by `--rule <name>=<value>` overrides the preset either way, so `moc2` can turn one rule off and `preserve` can turn one on. `--rule` spells values as the file does, without quotes.
 
 Each rule is safe on its own. The rules run in a fixed order, `brace-bodies` first, and the ones that need a braced body skip any construct that isn't braced yet.
 

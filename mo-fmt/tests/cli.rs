@@ -177,6 +177,50 @@ fn flags_override_mo_fmt_toml() {
 }
 
 #[test]
+fn rules_override_the_syntax_preset_in_the_file_and_by_flag() {
+    let source = "if (c) x else y;\n";
+    let dir = project(&[("mo-fmt.toml", "syntax = \"moc2\"\nunparen-heads = false\n")]);
+    let stdin = |args: &[&str]| {
+        let mut args = args.to_vec();
+        args.extend(["--stdin-filepath", "A.mo"]);
+        run(&dir, &args, source)
+    };
+    assert_eq!(
+        stdin(&[]),
+        (0, "if (c) { x } else { y };\n".into(), String::new())
+    );
+    // A later flag wins over an earlier one and over the file.
+    assert_eq!(
+        stdin(&[
+            "--rule",
+            "brace-bodies=false",
+            "--rule",
+            "unparen-heads=true",
+            "--rule",
+            "brace-bodies=true"
+        ]),
+        (0, "if c { x } else { y };\n".into(), String::new())
+    );
+
+    let (code, _, stderr) = stdin(&["--rule", "brace-bodies=yes"]);
+    assert_eq!(code, 2);
+    assert!(
+        stderr.contains("brace-bodies: invalid type: string \"yes\", expected a boolean"),
+        "{stderr}"
+    );
+    let dir = project(&[
+        ("mo-fmt.toml", "brace-bodies = \"yes\"\n"),
+        ("A.mo", FORMATTED),
+    ]);
+    let (code, _, stderr) = run(&dir, &["A.mo"], "");
+    assert_eq!(code, 2);
+    assert!(
+        stderr.starts_with("mo-fmt.toml: ") && stderr.contains("expected a boolean"),
+        "{stderr}"
+    );
+}
+
+#[test]
 fn a_file_that_fails_to_parse_is_reported_and_the_rest_are_formatted() {
     let dir = project(&[("A.mo", "let x = ;\n"), ("B.mo", UNFORMATTED)]);
     let error = "A.mo:1:7: unexpected input\n  |\n1 | let x = ;\n  |       ^\n";

@@ -32,6 +32,10 @@ struct Args {
     /// Overrides `indent-width` in `mo-fmt.toml`: spaces per level, 1 to 16 [default: 2]
     #[arg(long, value_name = "N")]
     indent_width: Option<IndentWidth>,
+
+    /// Overrides one rule, as `brace-bodies=false` or `semicolons=minimal`; repeatable. See the README for the rules
+    #[arg(long = "rule", value_name = "NAME=VALUE", value_parser = Config::from_rule)]
+    rules: Vec<Config>,
 }
 
 /// Exit codes: 0 done, 1 `--check` found files that need formatting, 2 a usage error or a file that failed to format.
@@ -56,6 +60,9 @@ fn main() -> ExitCode {
     }
     if let Some(width) = args.indent_width {
         config.indent_width = width;
+    }
+    for rule in &args.rules {
+        config.override_rules(rule);
     }
 
     if let Some(path) = &args.stdin_filepath {
