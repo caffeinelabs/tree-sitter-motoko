@@ -58,7 +58,7 @@ mo-fmt --syntax moc2 --indent-width 4 --rule unparen-patterns=false .
 
 A rule set in `mo-fmt.toml` or by `--rule <name>=<value>` overrides the preset either way, so `moc2` can turn one rule off and `preserve` can turn one on. `--rule` spells values as the file does, without quotes.
 
-Each rule is safe on its own. The rules run in a fixed order, `brace-bodies` first, and the ones that need a braced body skip any construct that isn't braced yet.
+Each rule is safe on its own. The rules run in a fixed order: `trailing-commas` first, since `(x,)` → `(x)` can free a head of its parentheses, then the syntax rules with `brace-bodies` leading. The ones that need a braced body skip any construct that isn't braced yet.
 
 #### `brace-bodies`
 

@@ -473,6 +473,16 @@ let arr = [
 '''
 
 [[case]]
+why = "rules: commas go first, so a head that `(x,)` → `(x)` frees loses its parentheses in the same run"
+config = { syntax = "moc2", trailing-commas = "never" }
+source = '''
+let _ = switch (42,) { case (3,) 3; case (a,) a };
+'''
+output = '''
+let _ = switch 42 { case 3 { 3 } case a { a } }
+'''
+
+[[case]]
 why = "moc2: heads with no hazard outside nested parens"
 config = { syntax = "moc2" }
 source = '''
