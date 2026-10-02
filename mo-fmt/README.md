@@ -62,7 +62,7 @@ Each rule is safe on its own. The rules run in a fixed order: `imports` and `tra
 
 #### `brace-bodies`
 
-Every control body becomes a braced block: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms, and `try`, `finally`, `async` and `async*` bodies. `else if` chains are kept.
+Every control body becomes a braced block: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms, and `try`, `finally`, `async` and `async*` bodies. `else if` chains are kept. A body on a line of its own gets its `{` at the end of the line before, as in `if c {`.
 
 ```motoko
 if (n == 0) 1 else n * fact(n - 1)
@@ -145,7 +145,7 @@ func f() {
 
 #### `imports`
 
-`organize` groups the imports at the top of the file into packages (`mo:`), canisters (`canister:`, `ic:`) and local files, in that order, with a blank line between groups, and sorts each group by path. That is external before local, as goimports and isort group them. A comment stays with the import below it, or with the one it follows on the same line, and a comment apart from the first import by a blank line is the file's header and stays at the top.
+`organize` groups the imports at the top of the file into packages (`mo:`), canisters (`canister:`, `ic:`) and local files, in that order, with a blank line between groups, and sorts each group by path. That is external before local, as goimports and isort group them. The comments above the first import, such as the module's doc comment or a pragma, are the file's header and stay at the top. A comment between imports stays with the import below it, or with the one whose line it ends.
 
 ```motoko
 import Utils "./utils";

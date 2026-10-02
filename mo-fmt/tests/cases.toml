@@ -702,6 +702,45 @@ import B "mo:b"; /* x */ // y
 '''
 
 [[case]]
+why = "rules: a body on a line of its own gets its `{` at the end of the line before, unless a line comment ends it"
+config = { brace-bodies = true }
+source = '''
+if (n == 0)
+  a(1) else
+  b(2);
+if (c) // why
+  x;
+'''
+output = '''
+if (n == 0) {
+  a(1)
+} else {
+  b(2)
+};
+if (c) // why
+  { x };
+'''
+
+[[case]]
+why = "rules: `imports = organize` leaves the comments above the first import, such as a module's doc comment, at the top"
+config = { imports = "organize" }
+source = '''
+/// Utility functions on 32-bit integers.
+import Int "Int";
+import Prim "mo:⛔";
+// the order
+import Order "Order";
+'''
+output = '''
+/// Utility functions on 32-bit integers.
+import Prim "mo:⛔";
+
+import Int "Int";
+// the order
+import Order "Order";
+'''
+
+[[case]]
 why = "moc2: heads with no hazard outside nested parens"
 config = { syntax = "moc2" }
 source = '''
