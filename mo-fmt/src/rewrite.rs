@@ -195,13 +195,32 @@ fn after<'n, 'a>(n: &'n Branch<'a>, keyword: &str) -> Option<&'n Branch<'a>> {
         .find_map(|c| c.as_branch().filter(|b| !b.extra))
 }
 
-fn brace(b: &Branch<'_>) -> [Edit; 2] {
-    [
-        Edit {
+/// Braces `b`, a child of `parent`. A body on a line of its own gets its `{` at the end of the line before, as in
+/// `if c {⏎ x⏎ }`, unless a line comment ends that line.
+fn brace(parent: &Branch<'_>, b: &Branch<'_>) -> [Edit; 2] {
+    let kids = &parent.children;
+    let i = index_of(parent, b);
+    let open = match (
+        i.checked_sub(2).map(|j| &kids[j]),
+        kids.get(i.wrapping_sub(1)),
+    ) {
+        (Some(before), Some(Node::Text(gap)))
+            if gap.text.contains('\n') && !crate::print::parts::is_line_comment(before) =>
+        {
+            Edit {
+                start: gap.start,
+                end: gap.start,
+                text: " {".into(),
+            }
+        }
+        _ => Edit {
             start: b.start,
             end: b.start,
             text: "{ ".into(),
         },
+    };
+    [
+        open,
         Edit {
             start: b.end,
             end: b.end,
@@ -229,7 +248,7 @@ fn brace_bodies(root: &Branch<'_>) -> Vec<Edit> {
         };
         for body in bodies.into_iter().flatten() {
             if !is_block(Some(body)) {
-                edits.extend(brace(body));
+                edits.extend(brace(n, body));
             }
         }
     }
@@ -724,13 +743,13 @@ impl ImportEntry<'_> {
 }
 
 /// Groups the imports at the top of the file, with a blank line between groups, and sorts each group by path.
-/// A comment above the first import and apart from it by a blank line is the file's header and stays put.
+/// The comments above the first import are the file's header, such as its module doc comment or a pragma, and stay put.
 fn organize_imports(root: &Branch<'_>) -> Vec<Edit> {
     if root.kind != "source_file" {
         return Vec::new();
     }
     let mut entries: Vec<ImportEntry<'_>> = Vec::new();
-    let mut above: Vec<(&str, usize, bool)> = Vec::new();
+    let mut above: Vec<(&str, bool)> = Vec::new();
     let mut start = None;
     let mut end = 0;
     let mut gap = "";
@@ -740,35 +759,27 @@ fn organize_imports(root: &Branch<'_>) -> Vec<Edit> {
             continue;
         }
         let on_new_line = gap.contains('\n');
-        // Above the first import, a blank line makes the comments before it the file's header, which stays put.
-        let header_break = entries.is_empty() && gap.matches('\n').count() >= 2;
         gap = "";
         if let Some(last) = above.last_mut() {
-            last.2 = on_new_line;
+            last.1 = on_new_line;
         }
         if crate::print::parts::is_comment(child) {
             match entries.last_mut() {
+                // The header, outside what gets sorted.
+                None => {}
                 Some(last) if !on_new_line && above.is_empty() => {
                     last.after.push(child.text());
                     end = child.end();
                 }
-                _ => {
-                    if header_break {
-                        above.clear();
-                    }
-                    above.push((child.text(), child.start(), true));
-                }
+                Some(_) => above.push((child.text(), true)),
             }
             continue;
         }
         match child {
             Node::Branch(b) if b.kind == "import" => {
-                if header_break {
-                    above.clear();
-                }
-                start.get_or_insert(above.first().map_or(b.start, |a| a.1));
+                start.get_or_insert(b.start);
                 entries.push(ImportEntry {
-                    above: above.drain(..).map(|(t, _, own)| (t, own)).collect(),
+                    above: std::mem::take(&mut above),
                     import: b,
                     semi: false,
                     after: Vec::new(),
