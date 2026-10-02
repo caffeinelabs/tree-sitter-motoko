@@ -167,7 +167,13 @@ impl Config {
                 known.join(", ")
             ));
         }
-        let value = match value.trim() {
+        // Also as copied from `mo-fmt.toml`, quotes and all.
+        let value = value.trim();
+        let value = value
+            .strip_prefix('"')
+            .and_then(|v| v.strip_suffix('"'))
+            .unwrap_or(value);
+        let value = match value {
             v @ ("true" | "false") => toml::Value::Boolean(v == "true"),
             v => toml::Value::String(v.into()),
         };
@@ -198,7 +204,7 @@ mod tests {
     #[test]
     fn a_rule_flag_overrides_the_file() {
         let mut config = Config::from_toml("syntax = \"moc2\"\nbrace-bodies = false\n").unwrap();
-        for arg in ["brace-bodies=true", "semicolons = preserve"] {
+        for arg in ["brace-bodies=true", "semicolons = \"preserve\""] {
             config.override_rules(&Config::from_rule(arg).unwrap());
         }
         assert_eq!(config.syntax, Syntax::Moc2);

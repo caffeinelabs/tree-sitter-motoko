@@ -3,7 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
-use mo_fmt::{Config, Error, Syntax, format};
+use mo_fmt::{BlockBlankLines, Config, Error, Imports, Syntax, TrailingCommas, format};
 
 // Valid Motoko the grammar can't parse: an `@`-privileged name, which only privileged mode accepts.
 const KNOWN_REJECTIONS: &[&str] = &["motoko/test/run-drun/timer.mo"];
@@ -52,12 +52,30 @@ fn every_file_round_trips_formats_stably_and_motoko_core_is_unchanged() {
         return;
     }
 
+    let moc2 = Config {
+        syntax: Syntax::Moc2,
+        ..Config::default()
+    };
+    // The other syntax rules must cope with bodies that aren't braced.
+    let unbraced = Config {
+        brace_bodies: Some(false),
+        ..moc2.clone()
+    };
+    // Every rule on, so the style rules meet real code and each other.
+    let all_rules = Config {
+        trailing_commas: Some(TrailingCommas::Multiline),
+        block_blank_lines: Some(BlockBlankLines::Trim),
+        imports: Some(Imports::Organize),
+        ..moc2.clone()
+    };
     let mut failures = Vec::new();
-    for syntax in [Syntax::Preserve, Syntax::Moc2] {
-        let config = Config {
-            syntax,
-            ..Config::default()
-        };
+    for (mode, config) in [
+        ("preserve", Config::default()),
+        ("moc2", moc2),
+        ("moc2 without brace-bodies", unbraced),
+        ("all rules", all_rules),
+    ] {
+        let syntax = config.syntax;
         for file in &all {
             let name = file.strip_prefix(&parent).unwrap().display().to_string();
             let source = std::fs::read_to_string(file).unwrap();
@@ -70,20 +88,18 @@ fn every_file_round_trips_formats_stably_and_motoko_core_is_unchanged() {
             match format(&source, &config) {
                 Ok(once) => {
                     if format(&once, &config).ok().as_ref() != Some(&once) {
-                        failures.push(format!(
-                            "{syntax:?} {name}: a second format changed the output"
-                        ));
+                        failures.push(format!("{mode} {name}: a second format changed the output"));
                     }
                     if syntax == Syntax::Preserve && file.starts_with(&core) && once != source {
                         failures.push(format!(
-                            "{syntax:?} {name}: motoko-core, already formatted, changed"
+                            "{mode} {name}: motoko-core, already formatted, changed"
                         ));
                     }
                 }
                 Err(Error::Syntax(_))
                     if name.contains("/test/fail/")
                         || KNOWN_REJECTIONS.contains(&name.as_str()) => {}
-                Err(e) => failures.push(format!("{syntax:?} {name}: {e}")),
+                Err(e) => failures.push(format!("{mode} {name}: {e}")),
             }
         }
     }

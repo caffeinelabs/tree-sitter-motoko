@@ -20,7 +20,7 @@ mo-fmt --rule brace-bodies=false .           # override one rule; repeatable
 - A file is replaced by renaming a temporary file over it, so readers never see it half-written. Several mo-fmt runs on the same files at once are safe. An edit made by something else while a file is being formatted is kept and the file reported, on a best-effort basis: an edit landing in the instant between that check and the rename can still be lost. The rename gives the file a new inode, so hard links to it and its owner aren't carried over; its permissions are.
 - Output always uses LF line endings, and a byte-order mark is kept.
 - Exit codes: `0` done, `1` `--check` found files that need formatting, `2` a usage error or a file that failed to format.
-- A `// mo-fmt-ignore` comment leaves the next item as written. `// prettier-ignore` still works too.
+- A `// mo-fmt-ignore` comment leaves the next item as written, untouched by the rules too. `// prettier-ignore` still works too.
 
 ## Configuration
 
@@ -56,7 +56,7 @@ mo-fmt --syntax moc2 --indent-width 4 --rule unparen-patterns=false .
 
 `moc2` leaves at `preserve` the rules that pick a style the target syntax doesn't imply. `func-bodies` isn't a key until it's implemented, so setting it is an error rather than silently doing nothing.
 
-A rule set in `mo-fmt.toml` or by `--rule <name>=<value>` overrides the preset either way, so `moc2` can turn one rule off and `preserve` can turn one on. `--rule` spells values as the file does, without quotes.
+A rule set in `mo-fmt.toml` or by `--rule <name>=<value>` overrides the preset either way, so `moc2` can turn one rule off and `preserve` can turn one on. `--rule` spells values as the file does, with or without the quotes.
 
 Each rule is safe on its own. The rules run in a fixed order: `imports` and `trailing-commas` first, since `(x,)` → `(x)` can free a head of its parentheses, then the syntax rules with `brace-bodies` leading. The ones that need a braced body skip any construct that isn't braced yet.
 
@@ -98,7 +98,7 @@ let ?user = users.get(id) else do { return #err("unknown") };
 
 #### `semicolons`
 
-`minimal` drops every `;` moc doesn't need: the one after a braced `case` arm, since the next `case` already ends it, and the one after the last item of a block, body, record, object or variant type, or file. A `;` between two items stays.
+`minimal` drops every `;` moc doesn't need: the one after a braced `case` arm, since the next `case` already ends it, and the one after the last item of a block, body, record, object or variant type, braced pattern, or file. A `;` between two items stays.
 
 ```motoko
 switch x { case #a { a() }; case #b { b(); }; }
@@ -107,7 +107,7 @@ switch x { case #a { a() } case #b { b() } }
 
 #### `trailing-commas`
 
-A `,` after the last item of a tuple, argument list, array, pattern or type list. `multiline` puts one on a list broken one item per line and none on a list on one line, and `never` drops them all. `(x,)` means the same as `(x)` in moc, so dropping one never changes the code. `multiline` leaves two kinds of list without one: a single item in parentheses, since `(x,)` reads as a one-tuple, and a `<…>` list, whose `>` moc needs glued to the last item.
+A `,` after the last item of a tuple, argument list, array, tuple pattern, tuple type, or `<…>` list of type parameters or a call's type arguments; the type arguments of a type, as in `Map<K, V>`, keep theirs as written. `multiline` puts one on a list broken one item per line and none on a list on one line, and `never` drops them all. `(x,)` means the same as `(x)` in moc, so dropping one never changes the code. `multiline` leaves two kinds of list without one: a single item in parentheses, since `(x,)` reads as a one-tuple, and a `<…>` list, whose `>` moc needs glued to the last item.
 
 ```motoko
 Map.add(
@@ -145,7 +145,7 @@ func f() {
 
 #### `imports`
 
-`organize` groups the imports at the top of the file into packages (`mo:`), canisters (`canister:`, `ic:`) and local files, in that order, with a blank line between groups, and sorts each group by path. That is external before local, as gofmt, isort and rustfmt group them. A comment stays with the import below it, or with the one it follows on the same line, and a comment apart from the first import by a blank line is the file's header and stays at the top.
+`organize` groups the imports at the top of the file into packages (`mo:`), canisters (`canister:`, `ic:`) and local files, in that order, with a blank line between groups, and sorts each group by path. That is external before local, as goimports and isort group them. A comment stays with the import below it, or with the one it follows on the same line, and a comment apart from the first import by a blank line is the file's header and stays at the top.
 
 ```motoko
 import Utils "./utils";
@@ -194,7 +194,7 @@ cargo deny check               # advisories, licenses and sources, as CI runs it
 - `rust-toolchain.toml` pins the toolchain, and CI also builds on the `rust-version` in `Cargo.toml`. Dependabot bumps the toolchain, the crates and the workflow actions.
 - `tests/cases.toml` holds input/output cases, each also checked to be a fixed point.
 - `tests/format/` holds larger fixtures with snapshots in `tests/snapshots/`.
-- The corpus test formats the compiler's tests and motoko-core in both modes. It requires stable output and no internal errors, and requires motoko-core, which is already formatted, to come out unchanged in `preserve`. CI pins both revisions.
+- The corpus test formats the compiler's tests and motoko-core in `preserve`, in `moc2`, in `moc2` without `brace-bodies` (so the other syntax rules meet unbraced bodies), and with every rule on. It requires stable output and no internal errors, and requires motoko-core, which is already formatted, to come out unchanged in `preserve`. CI pins both revisions.
 - `tools/format-repos.sh [v2 | legacy] [--reset]` formats `~/motoko` and `~/motoko-core` in place: with this checkout's mo-fmt in `preserve` or `v2` (`moc2`), or with the released prettier-plugin-motoko 0.13.0 for `legacy`. It refuses to run over uncommitted `.mo` changes unless given `--reset`.
 - `tools/compare.sh <repo> <preserve|moc2>` compares the output with the TypeScript [prettier-plugin-motoko](https://github.com/caffeinelabs/prettier-plugin-motoko) this formatter was ported from, checked out as `../../prettier-plugin-motoko`.
 
