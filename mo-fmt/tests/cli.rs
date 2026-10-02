@@ -218,6 +218,18 @@ fn rules_override_the_syntax_preset_in_the_file_and_by_flag() {
         stderr.starts_with("mo-fmt.toml: ") && stderr.contains("expected a boolean"),
         "{stderr}"
     );
+
+    // A rule that isn't implemented yet is an error, not silently nothing.
+    let dir = project(&[
+        ("mo-fmt.toml", "func-bodies = \"block\"\n"),
+        ("A.mo", FORMATTED),
+    ]);
+    let (code, _, stderr) = run(&dir, &["A.mo"], "");
+    assert_eq!(code, 2);
+    assert!(stderr.contains("unknown field `func-bodies`"), "{stderr}");
+    let (code, _, stderr) = run(&dir, &["--rule", "func-bodies=block", "A.mo"], "");
+    assert_eq!(code, 2);
+    assert!(stderr.contains("unknown rule \"func-bodies\""), "{stderr}");
 }
 
 #[test]

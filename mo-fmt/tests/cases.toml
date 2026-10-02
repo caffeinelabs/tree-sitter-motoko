@@ -257,7 +257,7 @@ loop { f() } while (g x);
 '''
 output = '''
 loop { f() } while c;
-loop { f() } while (g x)
+loop { f() } while g(x)
 '''
 
 [[case]]
@@ -570,6 +570,135 @@ let _ = switch (42,) { case (3,) 3; case (a,) a };
 '''
 output = '''
 let _ = switch 42 { case 3 { 3 } case a { a } }
+'''
+
+[[case]]
+why = "rules: an item after `// mo-fmt-ignore` is left as written by the rules too"
+config = { syntax = "moc2", trailing-commas = "never" }
+source = '''
+// mo-fmt-ignore
+let a = if (c) 1 else 2;
+let b = if (c) 1 else 2;
+func f() {
+  // mo-fmt-ignore
+  let x = [1,2,];
+  x
+};
+'''
+output = '''
+// mo-fmt-ignore
+let a = if (c) 1 else 2;
+let b = if c { 1 } else { 2 };
+func f() {
+  // mo-fmt-ignore
+  let x = [1,2,];
+  x
+}
+'''
+
+[[case]]
+why = "rules: `unparen-heads` without `brace-bodies` keeps a head whose `else if` chain has a bare branch further down"
+config = { syntax = "moc2", brace-bodies = false }
+source = '''
+let c = if (i == 0) { 0 } else if (a) 1 else 2;
+let d = if (i == 0) { 0 } else if (a) { 1 } else { 2 };
+'''
+output = '''
+let c = if (i == 0) { 0 } else if (a) 1 else 2;
+let d = if i == 0 { 0 } else if a { 1 } else { 2 }
+'''
+
+[[case]]
+why = "rules: a spaced call in a `loop … while` condition is glued so its parentheses can go"
+config = { syntax = "moc2" }
+source = '''
+loop { x() } while (f x);
+'''
+output = '''
+loop { x() } while f(x)
+'''
+
+[[case]]
+why = "rules: `do-blocks` alone"
+config = { do-blocks = true }
+source = '''
+let ?u = get(id) else { return null };
+if (c) x else y;
+'''
+output = '''
+let ?u = get(id) else do { return null };
+if (c) x else y;
+'''
+
+[[case]]
+why = "rules: `moc2` without `do-blocks` keeps a bare block after `else`"
+config = { syntax = "moc2", do-blocks = false }
+source = '''
+let ?u = get(id) else { return null };
+'''
+output = '''
+let ?u = get(id) else { return null }
+'''
+
+[[case]]
+why = "rules: `unparen-patterns` alone unwraps only braced arms"
+config = { unparen-patterns = true }
+source = '''
+switch (x) { case (#a v) { v }; case (#b) 1 };
+'''
+output = '''
+switch (x) { case #a(v) { v }; case (#b) 1 };
+'''
+
+[[case]]
+why = "rules: a variant with a payload under `?` gets its `#tag(…)` too, or moc reads `x` as the body"
+config = { syntax = "moc2" }
+source = '''
+switch o { case (?#a x) { x }; case (?#b or ?#c y) { y } };
+'''
+output = '''
+switch o { case ?#a(x) { x } case ?#b or ?#c(y) { y } }
+'''
+
+[[case]]
+why = "rules: a `for` head with a line comment or a line break inside the parentheses keeps them"
+config = { syntax = "moc2" }
+source = '''
+for (x in xs.vals() // c
+) { ignore x };
+for (x in
+  xs.vals()) { ignore x };
+'''
+output = '''
+for (x in xs.vals() // c
+) { ignore x };
+for (x in
+  xs.vals()) { ignore x }
+'''
+
+[[case]]
+why = "rules: `trailing-commas` doesn't take the `var` of an array for an item"
+config = { trailing-commas = "multiline" }
+source = '''
+let a : [var Nat] = [var
+];
+'''
+output = '''
+let a : [var Nat] = [
+  var
+];
+'''
+
+[[case]]
+why = "rules: `imports = organize` keeps every comment that ends an import's line with it"
+config = { imports = "organize" }
+source = '''
+import B "mo:b"; /* x */ // y
+import A "mo:a";
+'''
+output = '''
+import A "mo:a";
+import B "mo:b"; /* x */ // y
 '''
 
 [[case]]

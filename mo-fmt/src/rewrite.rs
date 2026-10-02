@@ -2,7 +2,8 @@
 
 use crate::Error;
 use crate::config::{BlockBlankLines, Imports, Rules, Semicolons, TrailingCommas};
-use crate::print::parts::{Family, list_of};
+use crate::print::is_ignore_directive;
+use crate::print::parts::{Family, list_items, list_of};
 use crate::tree::{Branch, Node, parse};
 
 struct Edit {
@@ -83,7 +84,15 @@ pub fn rewrite(source: &str, rules: &Rules) -> Result<String, Error> {
                     "the `{name}` rule lost or changed a comment"
                 )));
             }
-            let edits = pass(root);
+            let ignored = ignored(root);
+            let edits: Vec<Edit> = pass(root)
+                .into_iter()
+                .filter(|e| {
+                    !ignored
+                        .iter()
+                        .any(|&(start, end)| e.start <= end && e.end >= start)
+                })
+                .collect();
             if edits.is_empty() {
                 break;
             }
@@ -95,6 +104,25 @@ pub fn rewrite(source: &str, rules: &Rules) -> Result<String, Error> {
         }
     }
     Ok(text)
+}
+
+/// The spans of the items a `// mo-fmt-ignore` keeps as written, as the printer finds them, which no edit may touch.
+fn ignored(root: &Branch<'_>) -> Vec<(usize, usize)> {
+    let mut out = Vec::new();
+    for b in root.branches() {
+        if list_of(b).is_none() {
+            continue;
+        }
+        let items = list_items(b, b.kind != "source_file");
+        for pair in items.windows(2) {
+            if is_ignore_directive(pair[0].node) {
+                let item = &pair[1];
+                let end = item.rest.last().map_or(item.node.end(), |(_, n)| n.end());
+                out.push((item.node.start(), end));
+            }
+        }
+    }
+    out
 }
 
 /// The comments' text, sorted, since `imports` may reorder them.
@@ -327,7 +355,7 @@ fn head_of<'n, 'a>(n: &'n Branch<'a>) -> Option<&'n Branch<'a>> {
     match n.kind {
         "for_exp" => n.field("iterator"),
         "switch_exp" => parenthesised(n.field("scrutinee")),
-        "if_exp" | "while_exp" => parenthesised(n.field("condition")),
+        "if_exp" | "while_exp" | "loop_exp" => parenthesised(n.field("condition")),
         _ => None,
     }
 }
@@ -365,6 +393,13 @@ fn glue_head_calls(root: &Branch<'_>) -> Vec<Edit> {
     edits
 }
 
+/// Whether every branch of an `if`, down its `else if` chain, is braced: only that shape may follow a bare head.
+fn braced_chain(n: &Branch<'_>) -> bool {
+    is_block(n.field("then"))
+        && n.field("else")
+            .is_none_or(|e| is_block(Some(e)) || (e.kind == "if_exp" && braced_chain(e)))
+}
+
 /// `if (c) {` → `if c {`, likewise `while`, `switch` and `loop { … } while (c)`, and `for (p in e) {` → `for p in e {`.
 /// Only once every body is braced.
 fn unparen_heads(root: &Branch<'_>) -> Vec<Edit> {
@@ -384,13 +419,8 @@ fn unparen_heads(root: &Branch<'_>) -> Vec<Edit> {
                 if !head_safe(inner, false) {
                     continue;
                 }
-                if n.kind == "if_exp" {
-                    let otherwise = n.field("else");
-                    if !is_block(n.field("then"))
-                        || otherwise.is_some_and(|e| !is_block(Some(e)) && e.kind != "if_exp")
-                    {
-                        continue;
-                    }
+                if n.kind == "if_exp" && !braced_chain(n) {
+                    continue;
                 }
                 if matches!(n.kind, "while_exp" | "loop_exp") && !is_block(n.field("body")) {
                     continue;
@@ -416,6 +446,10 @@ fn unparen_heads(root: &Branch<'_>) -> Vec<Edit> {
                     continue;
                 }
                 let inside: String = n.children[open + 1..close].iter().map(Node::text).collect();
+                // A line comment before `)` would swallow the body's `{`, as a line break would split the head.
+                if inside.contains('\n') {
+                    continue;
+                }
                 let (before, after) = padding(n, open, close);
                 edits.push(Edit {
                     start: n.children[open].start(),
@@ -457,17 +491,11 @@ fn drop_case_semis(root: &Branch<'_>) -> Vec<Edit> {
 }
 
 const BARE_PATTERNS: &[&str] = &[
-    "lit_pat",
-    "var_pat",
-    "wild_pat",
-    "quest_pat",
-    "unop_pat",
-    "obj_pat",
-    "tup_pat",
+    "lit_pat", "var_pat", "wild_pat", "unop_pat", "obj_pat", "tup_pat",
 ];
 
 /// The pattern as a case pattern spells it without outer parentheses: a variant's payload goes in `#tag(…)`,
-/// and `or`, `and` and `: T` take each operand so. `None` for a pattern that needs its parentheses.
+/// and `?p`, `or`, `and` and `: T` take each operand so. `None` for a pattern that needs its parentheses.
 fn bare_pattern(p: &Branch<'_>) -> Option<String> {
     if BARE_PATTERNS.contains(&p.kind) {
         return Some(p.text.to_string());
@@ -484,7 +512,7 @@ fn bare_pattern(p: &Branch<'_>) -> Option<String> {
                 _ => None,
             }
         }
-        "alt_pat" | "and_pat" | "annot_pat" => {
+        "quest_pat" | "alt_pat" | "and_pat" | "annot_pat" => {
             let mut out = String::new();
             for c in &p.children {
                 match c {
@@ -551,7 +579,15 @@ fn tails<'n, 'a>(root: &'n Branch<'a>, family: &[Family]) -> Vec<Tail<'n, 'a>> {
             .nodes()
             .filter(|c| !c.is_token(list.open) && !c.is_token(list.close))
             .collect();
-        let is_item = |c: &Node<'_>| !c.is_token(sep) && !crate::print::parts::is_comment(c);
+        // `var` in `[var …]` is a keyword, not an item.
+        let is_item = |c: &Node<'_>| {
+            !crate::print::parts::is_comment(c)
+                && match c {
+                    Node::Branch(_) => true,
+                    Node::Token(t) => t.named,
+                    Node::Text(_) => false,
+                }
+        };
         let Some(i) = inner.iter().rposition(|c| is_item(c)) else {
             continue;
         };
@@ -573,7 +609,8 @@ fn delete(n: &Node<'_>) -> Edit {
     }
 }
 
-/// `{ a; b; }` → `{ a; b }`: moc ignores a `;` after the last item, of a block, body, record, object or variant type, or file.
+/// `{ a; b; }` → `{ a; b }`: moc ignores a `;` after the last item, of a block, body, record, object or variant type,
+/// braced pattern, or file.
 fn drop_trailing_semis(root: &Branch<'_>) -> Vec<Edit> {
     tails(root, &[Family::SemiSep, Family::SemiSep1])
         .into_iter()
@@ -639,16 +676,16 @@ fn trim_block_blank_lines(root: &Branch<'_>) -> Vec<Edit> {
     edits
 }
 
-/// One import with the comments that go with it: those on the lines above it, and one after it on its line.
+/// One import with the comments that go with it: those on the lines above it, and those after it on its line.
 struct ImportEntry<'a> {
     above: Vec<(&'a str, bool)>,
     import: &'a Branch<'a>,
     semi: bool,
-    after: Option<&'a str>,
+    after: Vec<&'a str>,
 }
 
 impl ImportEntry<'_> {
-    /// Packages, then canisters, then local files: external before local, as Go, Python and Rust group them.
+    /// Packages, then canisters, then local files: external before local, as goimports and isort group them.
     fn group(&self) -> u8 {
         let path = self.path();
         if path.starts_with("mo:") {
@@ -678,7 +715,7 @@ impl ImportEntry<'_> {
         if semi {
             out.push(';');
         }
-        if let Some(comment) = self.after {
+        for comment in &self.after {
             out.push(' ');
             out.push_str(comment);
         }
@@ -711,8 +748,8 @@ fn organize_imports(root: &Branch<'_>) -> Vec<Edit> {
         }
         if crate::print::parts::is_comment(child) {
             match entries.last_mut() {
-                Some(last) if !on_new_line && last.after.is_none() && above.is_empty() => {
-                    last.after = Some(child.text());
+                Some(last) if !on_new_line && above.is_empty() => {
+                    last.after.push(child.text());
                     end = child.end();
                 }
                 _ => {
@@ -734,7 +771,7 @@ fn organize_imports(root: &Branch<'_>) -> Vec<Edit> {
                     above: above.drain(..).map(|(t, _, own)| (t, own)).collect(),
                     import: b,
                     semi: false,
-                    after: None,
+                    after: Vec::new(),
                 });
                 end = b.end;
             }

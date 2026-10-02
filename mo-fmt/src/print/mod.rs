@@ -32,7 +32,7 @@ fn indent_of(line: &str) -> usize {
     line.chars().take_while(|c| c.is_whitespace()).count()
 }
 
-fn is_ignore_directive(n: &Node<'_>) -> bool {
+pub(crate) fn is_ignore_directive(n: &Node<'_>) -> bool {
     if !is_comment(n) {
         return false;
     }

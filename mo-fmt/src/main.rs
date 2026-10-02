@@ -11,7 +11,7 @@ const CONFIG_FILE: &str = "mo-fmt.toml";
 
 /// Formats Motoko files in place, with the options from `mo-fmt.toml` in the current directory. Flags override it.
 #[derive(Parser)]
-#[command(version, about)]
+#[command(version)]
 struct Args {
     /// Files and directories. Directories are searched for `.mo` files, honouring `.gitignore` and
     /// skipping `node_modules` and dot-directories.
