@@ -4,6 +4,8 @@ A formatter for [Motoko](https://github.com/caffeinelabs/motoko), built on the g
 
 It normalises spacing and indentation and keeps your line breaks: a list you wrote on one line stays on one line, and one you broke goes one item per line. Every run re-parses its own output and refuses to write code that parses differently from the input.
 
+Inside a line, keywords, `=`, `:`, `->`, `<:` and assignments are spaced on both sides, a `,` is followed by a space, a block's `{` is preceded by one, an anonymous `func` is glued to its parameters, and a run of spaces becomes one: `if(c){ x }else{y}` becomes `if (c) { x } else { y }`. Where moc reads the space, as in `if (c) -1` against `if (c)-1` or `f (x)` against `f(x)`, the spacing is kept as written.
+
 ## Usage
 
 ```sh
@@ -204,7 +206,7 @@ Releases are cut by pushing a `mo-fmt-vX.Y.Z` tag matching `Cargo.toml`. Its not
 
 - Config discovery: only `mo-fmt.toml` in the current directory is read. Next: the closest config above each file, then a `[format]` section in `mops.toml`, and `exclude` globs.
 - Packed lists: a list broken anywhere goes one item per line, which explodes packed rows such as numeric tables.
-- Spacing inside a line is only partly normalised: `x:T`, `<K,V>` and `->` are kept as written.
+- Spacing inside a line is only partly normalised: an operator a chain doesn't break at (`a**b`, `a<<b`, `a+%b`), spaces just inside brackets that aren't a list (`xs[ i ]`, `for ( x in xs )`) and a space between a function's name and its parameters (`func f (x)`) are kept as written.
 - `moc2` rewrites `f x` to `f(x)` only in control heads, where moc 2.0 requires it.
 - Formatting files in parallel, and a wasm build for editors.
 - Node kinds are strings (`"if_exp"`), so a typo disables a rule silently until a test notices. `build.rs` could generate constants from `node-types.json`.

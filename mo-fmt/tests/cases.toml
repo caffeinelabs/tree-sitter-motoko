@@ -185,6 +185,148 @@ func f() {
 '''
 
 [[case]]
+why = "spacing: an annotation's `:` is spaced on both sides, and a body's `{` gets a space before it"
+source = 'func f(x:Nat,y : Nat):Nat{ x }'
+output = '''
+func f(x : Nat, y : Nat) : Nat { x }
+'''
+
+[[case]]
+why = "spacing: a run of spaces inside a line becomes one, before a comment too"
+source = 'let x  =  1;   // one'
+output = '''
+let x = 1; // one
+'''
+
+[[case]]
+why = "spacing: a record field's `=` is spaced on both sides"
+source = 'let r = {a=1; b = 2};'
+output = '''
+let r = { a = 1; b = 2 };
+'''
+
+[[case]]
+why = "spacing: the `:` of a record or variant type's field is spaced on both sides"
+source = '''
+type T<K,V> = {k:K};
+type V = {#a:Nat; #b};'''
+output = '''
+type T<K, V> = { k : K };
+type V = { #a : Nat; #b };
+'''
+
+[[case]]
+why = "spacing: a keyword is followed by a space, and `else` and a body's `{` are spaced from what's beside them"
+source = '''
+if(true){ 1 }else{2};
+for(i in r){ };
+while(c){ };
+loop{ } while(c);'''
+output = '''
+if (true) { 1 } else { 2 };
+for (i in r) {};
+while (c) {};
+loop {} while (c);
+'''
+
+[[case]]
+why = "spacing: `switch` and `case` are followed by a space when glued to their parentheses"
+source = '''
+switch(x){ case(#a) 1; case(_) 2 };
+switch(y){};'''
+output = '''
+switch (x) { case (#a) 1; case (_) 2 };
+switch (y) {};
+'''
+
+[[case]]
+why = "spacing: a body glued to a `case` pattern gets a space, but not a unary one, which moc 2.0 reads differently spaced"
+source = 'switch (x) { case (#a)y; case (#b)-1; case (_) 2 };'
+output = '''
+switch (x) { case (#a) y; case (#b)-1; case (_) 2 };
+'''
+
+[[case]]
+why = "spacing: an anonymous `func` is glued to its parameters, a space there dropped, and its annotations and body are spaced"
+source = '''
+let g = func(x:Nat):Nat{x};
+let h = func (x : Nat) : Nat { x };'''
+output = '''
+let g = func(x : Nat) : Nat { x };
+let h = func(x : Nat) : Nat { x };
+'''
+
+[[case]]
+why = "spacing: `->`, `<:`, `:=` and `+=` are spaced on both sides"
+source = '''
+type F<T<:Nat> = (T)->T;
+func f() { a:=-1; a+=1 };'''
+output = '''
+type F<T <: Nat> = (T) -> T;
+func f() { a := -1; a += 1 };
+'''
+
+[[case]]
+why = "spacing: a keyword before `(` gets a space too, `do ?` included"
+source = '''
+func f() { assert(x); ignore debug_show(x); let y = do?{ 1 } };
+actor { public shared(msg) func g() : async () {} };'''
+output = '''
+func f() { assert (x); ignore debug_show (x); let y = do ? { 1 } };
+actor { public shared (msg) func g() : async () {} };
+'''
+
+[[case]]
+why = "spacing: a type's arguments are spaced after each `,` and not before, and a trailing `,` stays glued to the `>`"
+source = '''
+let m : Map<K,V> = x;
+let n : Map<K ,V,> = x;'''
+output = '''
+let m : Map<K, V> = x;
+let n : Map<K, V,> = x;
+'''
+
+[[case]]
+why = "spacing: a `>` with whitespace before it gets none after, since moc reads a `>` spaced on both sides as greater-than"
+source = 'func f() : Map< K, V >{ m };'
+output = '''
+func f() : Map< K, V >{ m };
+'''
+
+[[case]]
+why = "spacing: moc2 normalises the same spacing as preserve"
+config = { syntax = "moc2" }
+source = '''
+module {
+  public func f(x:Nat,y : Nat) : Nat{
+    x+y
+  };
+  let x  =  1;
+  let r = {a=1; b = 2};
+  type T<K,V> = {k:K};
+  if(true){ 1 }else{2};
+  switch(x){ case(#a) 1; case(_) 2 };
+  for(i in r){ };
+  while(c){ };
+  let g = func(x:Nat):Nat{x};
+}'''
+output = '''
+module {
+  public func f(x : Nat, y : Nat) : Nat {
+    x + y
+  };
+  let x = 1;
+  let r = { a = 1; b = 2 };
+  type T<K, V> = { k : K };
+  if true { 1 } else { 2 };
+  switch x { case #a { 1 } case _ { 2 } };
+  for i in r {};
+  while c {};
+  let g = func(x : Nat) : Nat { x }
+}
+'''
+
+[[case]]
 why = "comments: a comment before a glued `>` stays where it is, since moc rejects whitespace before that `>` even with a comment there"
 source = '''
 type F<

@@ -15,7 +15,7 @@ let fieldOnly = someVeryLongReceiverNameHere.alphaBetaGammaDelta.epsilonZetaEtaT
 
 let shortChain = x.foo(a).bar(b);
 
-let breakAtArguments = xs.map(func (x : Nat) : Nat { return x + 1; });
+let breakAtArguments = xs.map(func(x : Nat) : Nat { return x + 1; });
 
 let spacedSource = someLongReceiverNameHere
     .alphaBetaGammaDelta(a)

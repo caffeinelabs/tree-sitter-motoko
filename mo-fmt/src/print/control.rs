@@ -1,5 +1,5 @@
 use super::parts::{is_comment, newlines};
-use super::{Ctx, node_doc};
+use super::{Ctx, node_doc, space};
 use crate::doc::{Doc, EMPTY, HardLine, concat, indent, text};
 use crate::tree::{Branch, Node};
 
@@ -8,23 +8,22 @@ pub fn control_doc<'a>(node: &Branch<'a>, ctx: &Ctx<'a>) -> Option<Doc<'a>> {
         return None;
     }
     let children = &node.children;
-    if children.len() < 9 {
-        return None;
-    }
-    let [keyword, gap1, scrutinee, gap2, open] = &children[..5] else {
+    // `switch`, the scrutinee and `{`, glued or not.
+    let mut head = (0..children.len()).filter(|&i| !children[i].is_text());
+    let (Some(keyword), Some(scrutinee), Some(open)) = (head.next(), head.next(), head.next())
+    else {
         return None;
     };
+    let (keyword, scrutinee) = (&children[keyword], &children[scrutinee]);
     let close = children.last()?;
-    if !keyword.is_token("switch") || !open.is_token("{") || !close.is_token("}") {
+    if !keyword.is_token("switch") || !children[open].is_token("{") || !close.is_token("}") {
         return None;
     }
-    if !gap1.is_text() || !gap2.is_text() || scrutinee.as_branch().is_none() {
-        return None;
-    }
+    scrutinee.as_branch()?;
 
     let mut run: Vec<Doc<'a>> = Vec::new();
     let mut gap = None;
-    for child in &children[5..children.len() - 1] {
+    for child in &children[open + 1..children.len() - 1] {
         match child {
             Node::Text(g) => {
                 gap = Some(g.text);
@@ -73,7 +72,7 @@ pub fn control_doc<'a>(node: &Branch<'a>, ctx: &Ctx<'a>) -> Option<Doc<'a>> {
     Some(if broken {
         concat([
             head,
-            indent(concat([HardLine, blank(&children[5]), concat(run)])),
+            indent(concat([HardLine, blank(&children[open + 1]), concat(run)])),
             blank(&children[children.len() - 2]),
             HardLine,
             text("}"),
@@ -92,22 +91,29 @@ fn separator(gap: Option<&str>) -> Doc<'static> {
 }
 
 fn arm_doc<'a>(arm: &Branch<'a>, ctx: &Ctx<'a>) -> Option<Doc<'a>> {
-    let [keyword, gap1, pattern, gap2, body] = &arm.children[..] else {
-        return None;
+    // `case`, the pattern and the body, glued or not.
+    let (keyword, pattern, gap, body) = match &arm.children[..] {
+        [k, Node::Text(_), p, Node::Text(g), b] | [k, p, Node::Text(g), b] => {
+            (k, p, Some(g.text), b)
+        }
+        [k, Node::Text(_), p, b] | [k, p, b] => (k, p, None, b),
+        _ => return None,
     };
-    if !keyword.is_token("case")
-        || !gap1.is_text()
-        || pattern.as_branch().is_none()
-        || body.as_branch().is_none()
-    {
+    if !keyword.is_token("case") || pattern.as_branch().is_none() || body.as_branch().is_none() {
         return None;
     }
     let body_doc = node_doc(body, ctx);
-    let rest = if gap2.is_break() {
-        indent(concat([HardLine, body_doc]))
-    } else {
-        concat([text(" "), body_doc])
+    let rest = match gap {
+        Some(g) if g.contains('\n') => indent(concat([HardLine, body_doc])),
+        _ => concat([
+            space::join_doc(space::join(arm, pattern, body), gap),
+            body_doc,
+        ]),
     };
-    gap2.is_text()
-        .then(|| concat([text("case"), text(" "), node_doc(pattern, ctx), rest]))
+    Some(concat([
+        text("case"),
+        text(" "),
+        node_doc(pattern, ctx),
+        rest,
+    ]))
 }
