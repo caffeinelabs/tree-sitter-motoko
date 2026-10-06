@@ -3,6 +3,7 @@
 mod control;
 mod exp;
 pub(crate) mod parts;
+mod space;
 
 use crate::doc::{
     BreakParent, Doc, EMPTY, HardLine, align, concat, group, text, verbatim as verbatim_text,
@@ -12,6 +13,7 @@ use parts::{
     Item, List, between_separator, blank_in, has_blank_line, is_comment, is_line_comment,
     list_indent, list_items, list_of, newlines, separator_line, trailing_separator, verbatim,
 };
+use space::Join;
 
 pub(crate) struct Ctx<'a> {
     lines: Lines<'a>,
@@ -67,17 +69,21 @@ pub(crate) fn node_doc<'a>(n: &Node<'a>, ctx: &Ctx<'a>) -> Doc<'a> {
     }
 }
 
-/// A node with no layout of its own: children with the source's gaps.
+/// A node with no layout of its own: children with the source's line breaks, spaced on each line by `space::join`.
 /// After a copied line break, the rest sits at its source column relative to the node's first line,
 /// so a list nested inside indents from where the author put it.
 fn branch_doc<'a>(b: &Branch<'a>, ctx: &Ctx<'a>) -> Doc<'a> {
     let base = indent_of(ctx.lines.line(ctx.lines.row(b.start)));
     let mut out = Vec::new();
     let mut segment: Option<(usize, Vec<Doc<'a>>)> = None;
+    let mut prev: Option<&Node<'a>> = None;
+    let mut gap = None;
     for child in &b.children {
-        if let Node::Text(g) = child
-            && g.text.contains('\n')
-        {
+        if let Node::Text(g) = child {
+            if !g.text.contains('\n') {
+                gap = Some(g.text);
+                continue;
+            }
             if let Some((n, docs)) = segment.take() {
                 out.push(align(n, concat(docs)));
             }
@@ -88,13 +94,20 @@ fn branch_doc<'a>(b: &Branch<'a>, ctx: &Ctx<'a>) -> Doc<'a> {
                 vec![HardLine]
             };
             segment = Some((column.saturating_sub(base), breaks));
+            (prev, gap) = (None, None);
             continue;
         }
-        let doc = node_doc(child, ctx);
-        match &mut segment {
-            Some((_, docs)) => docs.push(doc),
-            None => out.push(doc),
-        }
+        let join = match prev {
+            Some(p) => space::join_doc(space::join(b, p, child), gap),
+            None => space::join_doc(Join::Keep, gap),
+        };
+        let docs = match &mut segment {
+            Some((_, docs)) => docs,
+            None => &mut out,
+        };
+        docs.push(join);
+        docs.push(node_doc(child, ctx));
+        (prev, gap) = (Some(child), None);
     }
     if let Some((n, docs)) = segment {
         out.push(align(n, concat(docs)));
@@ -126,7 +139,7 @@ fn list_doc<'a>(b: &Branch<'a>, list: List, ctx: &Ctx<'a>) -> Doc<'a> {
     let last_is_line_comment = is_line_comment(last.node);
     let body = concat([
         if blank_after_open { HardLine } else { EMPTY },
-        list_items_doc(&items, list, ctx, flat),
+        list_items_doc(b, &items, list, ctx, flat),
         if blank_before_close { HardLine } else { EMPTY },
     ]);
     group(
@@ -139,10 +152,16 @@ fn list_doc<'a>(b: &Branch<'a>, list: List, ctx: &Ctx<'a>) -> Doc<'a> {
     )
 }
 
-fn list_items_doc<'a>(items: &[Item<'_, 'a>], list: List, ctx: &Ctx<'a>, flat: bool) -> Doc<'a> {
+fn list_items_doc<'a>(
+    b: &Branch<'a>,
+    items: &[Item<'_, 'a>],
+    list: List,
+    ctx: &Ctx<'a>,
+    flat: bool,
+) -> Doc<'a> {
     let mut out = Vec::new();
     for (i, item) in items.iter().enumerate() {
-        let printed = item_doc(items, i, ctx);
+        let printed = item_doc(b, items, i, ctx);
         let Some(next) = items.get(i + 1) else {
             out.push(printed);
             out.push(trailing_separator(
@@ -178,7 +197,7 @@ fn list_items_doc<'a>(items: &[Item<'_, 'a>], list: List, ctx: &Ctx<'a>, flat: b
     concat(out)
 }
 
-fn item_doc<'a>(items: &[Item<'_, 'a>], i: usize, ctx: &Ctx<'a>) -> Doc<'a> {
+fn item_doc<'a>(list: &Branch<'a>, items: &[Item<'_, 'a>], i: usize, ctx: &Ctx<'a>) -> Doc<'a> {
     let item = &items[i];
     let ignored = i > 0 && is_ignore_directive(items[i - 1].node);
     let mut out = vec![if ignored {
@@ -186,18 +205,19 @@ fn item_doc<'a>(items: &[Item<'_, 'a>], i: usize, ctx: &Ctx<'a>) -> Doc<'a> {
     } else {
         node_doc(item.node, ctx)
     }];
+    let mut prev = item.node;
     for (gap, node) in &item.rest {
         if ignored {
             out.push(text(gap.unwrap_or("")));
             out.push(verbatim(node));
         } else {
             out.push(match gap {
-                None => EMPTY,
                 Some(g) if g.contains('\n') => HardLine,
-                Some(_) => text(" "),
+                _ => space::join_doc(space::join(list, prev, node), *gap),
             });
             out.push(node_doc(node, ctx));
         }
+        prev = node;
     }
     concat(out)
 }
@@ -209,7 +229,7 @@ fn source_file_doc<'a>(b: &Branch<'a>, ctx: &Ctx<'a>) -> Doc<'a> {
     }
     let mut out = Vec::new();
     for (i, item) in items.iter().enumerate() {
-        out.push(item_doc(&items, i, ctx));
+        out.push(item_doc(b, &items, i, ctx));
         out.push(trailing_separator(
             parts::Family::SemiSep,
             item.separated,

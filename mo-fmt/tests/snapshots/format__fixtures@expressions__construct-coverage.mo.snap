@@ -4,22 +4,22 @@ expression: out
 input_file: tests/format/expressions/construct-coverage.mo
 ---
 import Prim "mo:⛔";
-import  Other  "mo:⛔";
+import Other "mo:⛔";
 
 let x = 1;
 let y = 2;
 let z = x + y;
 
-func foo<A<:Any>(x:A) {};
-func foo <A <: Any>(x:A) {};
+func foo<A <: Any>(x : A) {};
+func foo <A <: Any>(x : A) {};
 
-func ():() {};
-func <T> () {};
+func() : () {};
+func<T> () {};
 
 ?{};
 do ? {};
-do?{};
-do? {};
+do ? {};
+do ? {};
 
 async* T;
 func f5() : async* T {};
@@ -72,7 +72,7 @@ let v9 = ?#abc;
   e = f;
 };
 
-if(x) { y };
-if(
+if (x) { y };
+if (
   x
 ) { y };
