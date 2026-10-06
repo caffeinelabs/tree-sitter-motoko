@@ -14,10 +14,37 @@ defaults:
     shell: bash
 
 jobs:
+  notes:
+    name: Release notes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      body: ${{ steps.notes.outputs.body }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: notes
+        run: |
+          {
+            echo "body<<EOF_NOTES"
+            .github/release-notes.sh "$GITHUB_REF_NAME"
+            echo EOF_NOTES
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   github:
+    needs: notes
     uses: tree-sitter/workflows/.github/workflows/release.yml@10c66d66e558b37df92e2a8ec5321218a6547b04 # main @ 2026-05-15
     with:
       generate: true
+      # Goes above the shared workflow's note on the source archive.
+      release-body: ${{ needs.notes.outputs.body }}
 
   # The shared workflow creates the release without a title, so GitHub shows a commit message in its place.
   title:
