@@ -92,7 +92,13 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      pull-requests: read
     steps:
+      # The whole history and its tags, for the notes.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           pattern: mo-fmt-*
@@ -102,7 +108,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sha256sum mo-fmt-*.tar.xz > sha256sums.txt
+          {
+            .github/release-notes.sh "$GITHUB_REF_NAME"
+            printf '\n---\n\n%s\n' "The Motoko formatter. Unpack the archive for your platform and run \`mo-fmt --help\`. Each archive carries a build provenance attestation: \`gh attestation verify <archive> --repo $GITHUB_REPOSITORY\`."
+          } > "$RUNNER_TEMP/notes.md"
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --latest=false \
             --title "mo-fmt ${GITHUB_REF_NAME#mo-fmt-v}" \
-            --notes "The Motoko formatter. Unpack the archive for your platform and run \`mo-fmt --help\`. Each archive carries a build provenance attestation: \`gh attestation verify <archive> --repo $GITHUB_REPOSITORY\`." \
+            --notes-file "$RUNNER_TEMP/notes.md" \
             mo-fmt-*.tar.xz sha256sums.txt
