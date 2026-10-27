@@ -15,6 +15,7 @@ mo-fmt --check .                             # list what would change, and exit 
 mo-fmt --stdin-filepath src/main.mo < src/main.mo   # format stdin, for editors
 mo-fmt --syntax moc2 .                       # override mo-fmt.toml; see Configuration
 mo-fmt --rule brace-bodies=false .           # override one rule; repeatable
+mo-fmt --markdown .                          # the Motoko code blocks of .md files too; see Markdown
 ```
 
 - Directories are searched for `.mo` files, honouring the project's `.gitignore` files (not your global one, so results are the same on every machine) and skipping `node_modules`, dot-directories such as `.mops`, and symlinks. A file named on the command line is always formatted, and a symlink named there is followed.
@@ -24,6 +25,25 @@ mo-fmt --rule brace-bodies=false .           # override one rule; repeatable
 - Exit codes: `0` done, `1` `--check` found files that need formatting, `2` a usage error or a file that failed to format.
 - A `// mo-fmt-ignore` comment leaves the next item as written, untouched by the rules too. `// prettier-ignore` still works too.
 
+## Markdown
+
+mo-fmt formats the code blocks tagged `motoko` or `mo` in a Markdown file, and leaves the rest of the file as written.
+
+- A `.md` or `.markdown` file named on the command line is always formatted. Directories are searched for them too with `--markdown` or `markdown = true` in `mo-fmt.toml`. `--stdin-filepath` with a Markdown path formats stdin as Markdown.
+- The tag is the first word after the fence, so ```` ```motoko no-repl title="a.mo" ```` counts, and ```` ```mo:pkg/lib.mo ````, an untagged block and a block of another language don't. An empty block, such as one a docs site fills in from a file, is left as it is.
+- A block inside a list item or a blockquote keeps its indentation or `>`. A block whose lines aren't indented alike, or that is never closed, is left as it is with a warning.
+- A block can be a lone member of an actor, object or module, such as a `public func`; it is formatted as the body of a module.
+- A block that doesn't parse is an error, reported at its line in the Markdown file and left as written, and the file's other blocks are still formatted. To leave a block as written, such as an example with `...` in it or one of code that's meant to be wrong, put an HTML comment before it:
+
+  ````markdown
+  <!-- mo-fmt-ignore -->
+  ```motoko
+  type Header = ...;
+  ```
+  ````
+
+  `<!-- prettier-ignore -->` works too. Blank lines can come between the comment and the block.
+
 ## Configuration
 
 An optional `mo-fmt.toml` in the current directory:
@@ -31,6 +51,7 @@ An optional `mo-fmt.toml` in the current directory:
 ```toml
 syntax = "preserve"   # or "moc2", which rewrites legacy syntax to the moc 2.0 forms
 indent-width = 2      # 1 to 16
+markdown = false      # whether directories are searched for Markdown files too; see Markdown
 brace-bodies = true   # any of the rules below, overriding `syntax`
 ```
 
@@ -66,6 +87,7 @@ Each rule is safe on its own. The rules run in a fixed order: `imports` and `tra
 
 Every control body becomes a braced block: `if`/`else` branches, `while`/`for`/`loop` bodies, `case` and `catch` arms, and `try`, `finally`, `async` and `async*` bodies. `else if` chains are kept. A body on a line of its own gets its `{` at the end of the line before, as in `if c {`.
 
+<!-- mo-fmt-ignore -->
 ```motoko
 if (n == 0) 1 else n * fact(n - 1)
 if (n == 0) { 1 } else { n * fact(n - 1) }
@@ -75,6 +97,7 @@ if (n == 0) { 1 } else { n * fact(n - 1) }
 
 Drops the parentheses around an `if`, `while` or `switch` head, around `for (p in e)`, and around the condition of `loop { … } while (c)`. A spaced call in a head, `f x`, becomes `f(x)` when that is all that keeps the parentheses. Records, tuples, statement-like and multi-line heads keep them.
 
+<!-- mo-fmt-ignore -->
 ```motoko
 switch (map.get(key)) { … }
 switch map.get(key) { … }
@@ -84,6 +107,7 @@ switch map.get(key) { … }
 
 Drops the parentheses around a `case` or `catch` pattern, moving a variant's payload into `#tag(…)`, and likewise for each side of an `or`, `and` or `: T` pattern: `case (#a x or #b x)` → `case #a(x) or #b(x)`. Tuple patterns keep them.
 
+<!-- mo-fmt-ignore -->
 ```motoko
 case (#ok v) { … }
 case #ok(v) { … }
@@ -102,6 +126,7 @@ let ?user = users.get(id) else do { return #err("unknown") };
 
 `minimal` drops every `;` moc doesn't need: the one after a braced `case` arm, since the next `case` already ends it, and the one after the last item of a block, body, record, object or variant type, braced pattern, or file. A `;` between two items stays.
 
+<!-- mo-fmt-ignore -->
 ```motoko
 switch x { case #a { a() }; case #b { b(); }; }
 switch x { case #a { a() } case #b { b() } }

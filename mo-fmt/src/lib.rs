@@ -4,6 +4,7 @@ use std::borrow::Cow;
 
 pub mod config;
 mod doc;
+mod markdown;
 mod print;
 mod rewrite;
 // Exposed for the tests; not a stable API.
@@ -14,6 +15,7 @@ mod verify;
 pub use config::{
     BlockBlankLines, Config, Imports, IndentWidth, Rules, Semicolons, Syntax, TrailingCommas,
 };
+pub use markdown::{Markdown, Skipped, format_markdown};
 pub use tree::SyntaxError;
 
 #[derive(Debug)]
@@ -30,7 +32,7 @@ impl std::fmt::Display for Error {
             Error::Syntax(e) => write!(f, "{e}"),
             Error::Internal(message) => write!(
                 f,
-                "internal error: {message}. The file was left unchanged; please report this with the file at \
+                "internal error: {message}. The code was left unchanged; please report this with the file at \
                  https://github.com/caffeinelabs/tree-sitter-motoko/issues"
             ),
         }
@@ -60,11 +62,15 @@ const STACK_SIZE: usize = 1 << 30;
 /// It runs on a thread of its own with a large stack, so deeply nested code doesn't overflow, and a bug
 /// is returned as `Error::Internal` rather than a panic.
 pub fn format(source: &str, config: &Config) -> Result<String, Error> {
+    on_large_stack(|| format_here(source, config))
+}
+
+fn on_large_stack<T: Send>(f: impl FnOnce() -> Result<T, Error> + Send) -> Result<T, Error> {
     std::thread::scope(|scope| {
         let thread = std::thread::Builder::new()
             .name(THREAD_NAME.into())
             .stack_size(STACK_SIZE)
-            .spawn_scoped(scope, || format_here(source, config))
+            .spawn_scoped(scope, f)
             .map_err(|e| Error::Internal(format!("could not start a formatting thread ({e})")))?;
         thread.join().unwrap_or_else(|panic| {
             let reason = panic
@@ -77,16 +83,22 @@ pub fn format(source: &str, config: &Config) -> Result<String, Error> {
     })
 }
 
-fn format_here(source: &str, config: &Config) -> Result<String, Error> {
-    let (bom, body) = match source.strip_prefix(BOM) {
+/// The text without its byte-order mark, which is returned apart, and with LF line endings.
+fn normalize(text: &str) -> (&'static str, Cow<'_, str>) {
+    let (bom, body) = match text.strip_prefix(BOM) {
         Some(rest) => (BOM, rest),
-        None => ("", source),
+        None => ("", text),
     };
-    let normalized: Cow<'_, str> = if body.contains('\r') {
+    let normalized = if body.contains('\r') {
         body.replace("\r\n", "\n").replace('\r', "\n").into()
     } else {
         body.into()
     };
+    (bom, normalized)
+}
+
+fn format_here(source: &str, config: &Config) -> Result<String, Error> {
+    let (bom, normalized) = normalize(source);
     let source: Cow<'_, str> = rewrite::rewrite(&normalized, &config.rules())?.into();
     let root = tree::parse(&source).map_err(Error::Syntax)?;
     let printed = doc::print(print::print(&root, &source), config.indent_width.get());

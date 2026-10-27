@@ -164,6 +164,11 @@ impl<'a> Lines<'a> {
         self.starts.partition_point(|&s| s <= offset) - 1
     }
 
+    /// Where the line holding `offset` starts.
+    pub fn line_start(&self, offset: usize) -> usize {
+        self.starts[self.row(offset)]
+    }
+
     /// Zero-based row and character column.
     pub fn pos(&self, offset: usize) -> (usize, usize) {
         let row = self.row(offset);
@@ -447,25 +452,31 @@ fn syntax_error(lines: &Lines<'_>, problem: Problem<'_, '_>) -> SyntaxError {
     } else {
         "unexpected input".to_string()
     };
-    let gutter = (row + 1).to_string().len();
-    let line = lines.line(row);
-    // Tabs stay tabs, so the caret lines up however wide the terminal draws them.
-    let pad: String = line
-        .chars()
-        .take(column)
-        .map(|c| if c == '\t' { '\t' } else { ' ' })
-        .collect();
-    let frame = format!(
-        "{:gutter$} |\n{} | {line}\n{:gutter$} | {pad}^",
-        "",
-        row + 1,
-        ""
-    );
-    SyntaxError {
-        message,
-        line: row + 1,
-        column: column + 1,
-        frame,
+    SyntaxError::new(message, row, column, lines.line(row))
+}
+
+impl SyntaxError {
+    /// An error at the zero-based `row` and character `column` of `line`, which the frame shows.
+    pub(crate) fn new(message: String, row: usize, column: usize, line: &str) -> Self {
+        let gutter = (row + 1).to_string().len();
+        // Tabs stay tabs, so the caret lines up however wide the terminal draws them.
+        let pad: String = line
+            .chars()
+            .take(column)
+            .map(|c| if c == '\t' { '\t' } else { ' ' })
+            .collect();
+        let frame = format!(
+            "{:gutter$} |\n{} | {line}\n{:gutter$} | {pad}^",
+            "",
+            row + 1,
+            ""
+        );
+        SyntaxError {
+            message,
+            line: row + 1,
+            column: column + 1,
+            frame,
+        }
     }
 }
 
