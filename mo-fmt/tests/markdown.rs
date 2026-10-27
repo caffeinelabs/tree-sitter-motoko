@@ -302,3 +302,12 @@ fn the_readme_is_formatted() {
     let readme = include_str!("../README.md");
     assert_eq!(formatted(readme), readme);
 }
+
+#[test]
+fn a_block_that_breaks_the_formatter_leaves_the_others_to_format() {
+    // An unclosed block comment panics the formatter today; whatever it becomes, it fails this block alone.
+    let source = "```motoko\nlet x = f(1,2);\n```\n\n```motoko\nlet y = { /* unclosed\n};\n```\n";
+    let out = markdown(source);
+    assert_eq!(out.formatted, source.replace("1,2", "1, 2"));
+    assert_eq!(out.errors.len(), 1, "{:?}", out.errors);
+}

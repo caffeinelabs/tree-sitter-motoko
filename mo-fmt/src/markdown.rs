@@ -1,11 +1,14 @@
 //! The Motoko code blocks of a Markdown file.
 
 use std::ops::Range;
+use std::panic::{AssertUnwindSafe, catch_unwind};
 
 use pulldown_cmark::{CodeBlockKind, Event, Parser, Tag, TagEnd};
 
 use crate::tree::{Lines, Node, SyntaxError};
-use crate::{Config, Error, format_here, normalize, on_large_stack, rewrite, tree, verify};
+use crate::{
+    Config, Error, format_here, normalize, on_large_stack, panicked, rewrite, tree, verify,
+};
 
 /// A Markdown file with its Motoko code blocks formatted.
 #[derive(Debug)]
@@ -29,7 +32,7 @@ pub struct Skipped {
 /// Formats the code blocks tagged `motoko` or `mo` in a Markdown file. A block that doesn't parse is an error,
 /// unless an HTML comment `<!-- mo-fmt-ignore -->` or `<!-- prettier-ignore -->` comes before it.
 ///
-/// `Err` is a bug in mo-fmt, and then nothing was formatted.
+/// `Err` is a bug in mo-fmt outside any one block, and then nothing was formatted.
 pub fn format_markdown(source: &str, config: &Config) -> Result<Markdown, Error> {
     on_large_stack(|| {
         let (bom, text) = normalize(source);
@@ -58,7 +61,10 @@ pub fn format_markdown(source: &str, config: &Config) -> Result<Markdown, Error>
                 });
                 continue;
             };
-            match format_code(&block.text, config) {
+            // A bug in one block leaves the others to format.
+            let result = catch_unwind(AssertUnwindSafe(|| format_code(&block.text, config)))
+                .unwrap_or_else(|panic| Err(panicked(panic.as_ref())));
+            match result {
                 Ok(code_formatted) => {
                     formatted.push_str(&text[copied..start]);
                     for line in code_formatted.split_inclusive('\n') {
