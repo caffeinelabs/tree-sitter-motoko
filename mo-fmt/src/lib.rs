@@ -72,15 +72,19 @@ fn on_large_stack<T: Send>(f: impl FnOnce() -> Result<T, Error> + Send) -> Resul
             .stack_size(STACK_SIZE)
             .spawn_scoped(scope, f)
             .map_err(|e| Error::Internal(format!("could not start a formatting thread ({e})")))?;
-        thread.join().unwrap_or_else(|panic| {
-            let reason = panic
-                .downcast_ref::<&str>()
-                .map(|s| s.to_string())
-                .or_else(|| panic.downcast_ref::<String>().cloned())
-                .unwrap_or_default();
-            Err(Error::Internal(format!("the formatter panicked: {reason}")))
-        })
+        thread
+            .join()
+            .unwrap_or_else(|panic| Err(panicked(panic.as_ref())))
     })
+}
+
+fn panicked(panic: &(dyn std::any::Any + Send)) -> Error {
+    let reason = panic
+        .downcast_ref::<&str>()
+        .map(|s| s.to_string())
+        .or_else(|| panic.downcast_ref::<String>().cloned())
+        .unwrap_or_default();
+    Error::Internal(format!("the formatter panicked: {reason}"))
 }
 
 /// The text without its byte-order mark, which is returned apart, and with LF line endings.
