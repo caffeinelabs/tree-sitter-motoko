@@ -188,6 +188,25 @@ system func timer(set : Nat64 -> ()) : async () {
 }
 
 #[test]
+fn a_member_keeps_an_item_ignored_in_it_as_written() {
+    for source in [
+        "```motoko\n// mo-fmt-ignore\npublic func f() {\n  let x   = 1;\n}\n```\n",
+        "```motoko\npublic func f() {\n  // mo-fmt-ignore\n  let x   = [1,\n2];\n}\n```\n",
+    ] {
+        assert_eq!(formatted(source), source);
+    }
+}
+
+#[test]
+fn an_error_in_a_member_is_located_in_it() {
+    let out = markdown("```motoko\npublic func f() { let x = ; }\n```\n");
+    let [Error::Syntax(e)] = &out.errors[..] else {
+        panic!("{:?}", out.errors);
+    };
+    assert_eq!((e.line, e.column), (2, 25));
+}
+
+#[test]
 fn a_member_keeps_the_lines_of_its_block_comments() {
     let source = "```motoko\npublic func f() {\n    /* a\n       b */\n    g();\n};\n```\n";
     assert_eq!(
@@ -260,12 +279,22 @@ let x = f(1,2);
 }
 
 #[test]
-fn line_endings_become_lf_and_a_byte_order_mark_is_kept() {
+fn keeps_crlf_line_endings_and_a_byte_order_mark() {
     let source = "\u{feff}Text.\r\n\r\n```motoko\r\nlet x = f(1,2);\r\n```\r\n";
-    assert_eq!(
-        formatted(source),
-        "\u{feff}Text.\n\n```motoko\nlet x = f(1, 2);\n```\n"
-    );
+    assert_eq!(formatted(source), source.replace("1,2", "1, 2"));
+    // A file whose blocks don't change is left as it is, line endings and all.
+    for source in [
+        "Text.\r\nMore.\n",
+        "Text.\r\n\r\n```motoko\r\nlet x = 1;\n```\r\n",
+    ] {
+        assert_eq!(formatted(source), source);
+    }
+}
+
+#[test]
+fn a_comment_before_a_tight_list_does_not_reach_past_its_text() {
+    let source = "<!-- mo-fmt-ignore -->\n- Some text.\n  ```motoko\n  let x = f(1,2);\n  ```\n";
+    assert_eq!(formatted(source), source.replace("1,2", "1, 2"));
 }
 
 #[test]
