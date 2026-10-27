@@ -5,17 +5,22 @@ use std::process::ExitCode;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use clap::Parser;
-use mo_fmt::{Config, Error, IndentWidth, Syntax, format};
+use mo_fmt::{Config, Error, IndentWidth, Syntax, format, format_markdown};
 
 const CONFIG_FILE: &str = "mo-fmt.toml";
 
-/// Formats Motoko files in place, with the options from `mo-fmt.toml` in the current directory. Flags override it.
+/// Formats Motoko files, and the Motoko code blocks of Markdown files, in place, with the options from
+/// `mo-fmt.toml` in the current directory. Flags override it.
 #[derive(Parser)]
 #[command(version)]
 struct Args {
     /// Files and directories. Directories are searched for `.mo` files, honouring `.gitignore` and
     /// skipping `node_modules` and dot-directories.
     paths: Vec<PathBuf>,
+
+    /// Search directories for Markdown files (`.md`, `.markdown`) too. Overrides `markdown` in `mo-fmt.toml`
+    #[arg(long)]
+    markdown: bool,
 
     /// List the files that would change, and exit 1 if any would.
     #[arg(short, long)]
@@ -58,6 +63,7 @@ fn main() -> ExitCode {
     if let Some(syntax) = args.syntax {
         config.syntax = syntax;
     }
+    config.markdown |= args.markdown;
     if let Some(width) = args.indent_width {
         config.indent_width = width;
     }
@@ -78,7 +84,7 @@ fn main() -> ExitCode {
     let mut files = Vec::new();
     for path in &args.paths {
         if path.is_dir() {
-            let (found, errors) = motoko_files(path);
+            let (found, errors) = motoko_files(path, config.markdown);
             files.extend(found);
             for e in errors {
                 eprintln!("{e}");
@@ -87,10 +93,10 @@ fn main() -> ExitCode {
         } else if !path.exists() {
             eprintln!("{}: no such file or directory", path.display());
             failed = true;
-        } else if path.extension().is_some_and(|e| e == "mo") {
+        } else if is_motoko(path) || is_markdown(path) {
             files.push(path.clone());
         } else {
-            eprintln!("{}: not a Motoko file", path.display());
+            eprintln!("{}: not a Motoko or Markdown file", path.display());
             failed = true;
         }
     }
@@ -103,17 +109,20 @@ fn main() -> ExitCode {
     let mut errors = 0;
     let mut out = std::io::stdout().lock();
     for file in &files {
-        match format_file(file, &config, args.check) {
-            Ok(false) => {}
-            Ok(true) => {
-                changed += 1;
-                let _ = writeln!(out, "{}", file.display());
-            }
-            Err(message) => {
-                eprintln!("{message}");
-                errors += 1;
-                failed = true;
-            }
+        let outcome = format_file(file, &config, args.check);
+        if outcome.changed {
+            changed += 1;
+            let _ = writeln!(out, "{}", file.display());
+        }
+        for warning in &outcome.warnings {
+            eprintln!("{warning}");
+        }
+        for error in &outcome.errors {
+            eprintln!("{error}");
+        }
+        if !outcome.errors.is_empty() {
+            errors += 1;
+            failed = true;
         }
     }
 
@@ -170,10 +179,16 @@ fn format_stdin(path: &Path, config: &Config) -> ExitCode {
         eprintln!("stdin: {e}");
         return ExitCode::from(2);
     }
-    let formatted = match format(&source, config) {
-        Ok(formatted) => formatted,
-        Err(e) => {
-            eprintln!("{}", message(path, &e));
+    let outcome = format_source(path, &source, config);
+    for warning in &outcome.warnings {
+        eprintln!("{warning}");
+    }
+    let formatted = match (outcome.formatted, outcome.errors.is_empty()) {
+        (Some(formatted), true) => formatted,
+        _ => {
+            for error in &outcome.errors {
+                eprintln!("{error}");
+            }
             return ExitCode::from(2);
         }
     };
@@ -191,26 +206,93 @@ fn format_stdin(path: &Path, config: &Config) -> ExitCode {
     }
 }
 
-/// Whether the file changed, or would have.
-fn format_file(file: &Path, config: &Config, check: bool) -> Result<bool, String> {
-    let source = std::fs::read_to_string(file).map_err(|e| format!("{}: {e}", file.display()))?;
-    let formatted = format(&source, config).map_err(|e| message(file, &e))?;
-    if formatted == source {
-        return Ok(false);
+#[derive(Default)]
+struct Outcome {
+    /// What to write, if any of it formatted.
+    formatted: Option<String>,
+    /// Whether the file changed, or would have.
+    changed: bool,
+    /// One for the file, or one for each Markdown code block that failed to format.
+    errors: Vec<String>,
+    warnings: Vec<String>,
+}
+
+fn format_source(file: &Path, source: &str, config: &Config) -> Outcome {
+    if !is_markdown(file) {
+        return match format(source, config) {
+            Ok(formatted) => Outcome {
+                formatted: Some(formatted),
+                ..Outcome::default()
+            },
+            Err(e) => Outcome {
+                errors: vec![message(file, &e)],
+                ..Outcome::default()
+            },
+        };
     }
+    match format_markdown(source, config) {
+        Ok(markdown) => Outcome {
+            formatted: Some(markdown.formatted),
+            changed: false,
+            errors: markdown.errors.iter().map(|e| message(file, e)).collect(),
+            warnings: (markdown.skipped.iter())
+                .map(|s| {
+                    format!(
+                        "{}:{}: warning: {}; left as it is",
+                        file.display(),
+                        s.line,
+                        s.reason
+                    )
+                })
+                .collect(),
+        },
+        Err(e) => Outcome {
+            errors: vec![message(file, &e)],
+            ..Outcome::default()
+        },
+    }
+}
+
+/// Formats the file, or what of it formats: a Markdown file's other code blocks are formatted even when one fails.
+fn format_file(file: &Path, config: &Config, check: bool) -> Outcome {
+    let source = match std::fs::read_to_string(file) {
+        Ok(source) => source,
+        Err(e) => {
+            return Outcome {
+                errors: vec![format!("{}: {e}", file.display())],
+                ..Outcome::default()
+            };
+        }
+    };
+    let mut outcome = format_source(file, &source, config);
+    let Some(formatted) = outcome.formatted.take().filter(|f| *f != source) else {
+        return outcome;
+    };
+    outcome.changed = true;
     if !check {
-        match replace(file, &source, &formatted) {
-            Ok(true) => {}
-            Ok(false) => {
-                return Err(format!(
-                    "{}: changed while being formatted; left as it is",
-                    file.display()
-                ));
-            }
-            Err(e) => return Err(format!("{}: {e}", file.display())),
+        let error = match replace(file, &source, &formatted) {
+            Ok(true) => None,
+            Ok(false) => Some(format!(
+                "{}: changed while being formatted; left as it is",
+                file.display()
+            )),
+            Err(e) => Some(format!("{}: {e}", file.display())),
+        };
+        if let Some(error) = error {
+            outcome.changed = false;
+            outcome.errors.push(error);
         }
     }
-    Ok(true)
+    outcome
+}
+
+fn is_motoko(path: &Path) -> bool {
+    path.extension().is_some_and(|e| e == "mo")
+}
+
+fn is_markdown(path: &Path) -> bool {
+    path.extension()
+        .is_some_and(|e| e == "md" || e == "markdown")
 }
 
 /// Replaces the file's contents if it still holds `expected`, by renaming a temporary file over it, so a reader
@@ -259,8 +341,9 @@ fn message(file: &Path, e: &Error) -> String {
     }
 }
 
-/// The `.mo` files under `dir`, and an error for each part of it that couldn't be read.
-fn motoko_files(dir: &Path) -> (Vec<PathBuf>, Vec<String>) {
+/// The `.mo` files under `dir`, and the Markdown files with `markdown`, and an error for each part of it that
+/// couldn't be read.
+fn motoko_files(dir: &Path, markdown: bool) -> (Vec<PathBuf>, Vec<String>) {
     let mut files = Vec::new();
     let mut errors = Vec::new();
     let walk = ignore::WalkBuilder::new(dir)
@@ -274,7 +357,7 @@ fn motoko_files(dir: &Path) -> (Vec<PathBuf>, Vec<String>) {
         match entry {
             Ok(e)
                 if e.file_type().is_some_and(|t| t.is_file())
-                    && e.path().extension().is_some_and(|x| x == "mo") =>
+                    && (is_motoko(e.path()) || markdown && is_markdown(e.path())) =>
             {
                 files.push(e.into_path());
             }
