@@ -108,11 +108,39 @@ fn branch_doc<'a>(b: &Branch<'a>, ctx: &Ctx<'a>) -> Doc<'a> {
         docs.push(join);
         docs.push(node_doc(child, ctx));
         (prev, gap) = (Some(child), None);
+        // The rest of a child's last line, like the arguments after `.f` in a broken method chain, indents from that line.
+        if ends_on_copied_break(child, ctx.lines.row(b.start), ctx) {
+            if let Some((n, docs)) = segment.take() {
+                out.push(align(n, concat(docs)));
+            }
+            let last = indent_of(ctx.lines.line(ctx.lines.row(child.end())));
+            segment = Some((last.saturating_sub(base), Vec::new()));
+        }
     }
     if let Some((n, docs)) = segment {
         out.push(align(n, concat(docs)));
     }
     concat(out)
+}
+
+/// Whether a node's last line starts at a break `branch_doc` copies, and so at its source column.
+/// Lists, binary chains and switches lay their lines out themselves, and a node starting on a later row
+/// than `row` may sit at another indent than its source one.
+fn ends_on_copied_break(n: &Node<'_>, row: usize, ctx: &Ctx<'_>) -> bool {
+    let Node::Branch(b) = n else {
+        return false;
+    };
+    if ctx.lines.row(b.start) != row
+        || list_of(b).is_some()
+        || matches!(b.kind, "bin_exp" | "coalesce_exp" | "switch_exp")
+    {
+        return false;
+    }
+    match b.children.iter().rev().find(|c| c.text().contains('\n')) {
+        Some(Node::Text(_)) => true,
+        Some(c) => ends_on_copied_break(c, row, ctx),
+        None => false,
+    }
 }
 
 fn list_doc<'a>(b: &Branch<'a>, list: List, ctx: &Ctx<'a>) -> Doc<'a> {

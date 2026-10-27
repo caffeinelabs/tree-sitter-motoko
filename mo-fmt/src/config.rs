@@ -101,6 +101,8 @@ macro_rules! rules {
         pub struct Config {
             pub syntax: Syntax,
             pub indent_width: IndentWidth,
+            /// Directories are searched for Markdown files too, whose Motoko code blocks are formatted.
+            pub markdown: bool,
             $(pub $name: Option<$ty>,)*
         }
 

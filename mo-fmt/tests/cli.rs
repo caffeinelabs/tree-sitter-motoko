@@ -260,6 +260,122 @@ fn a_file_that_fails_to_parse_is_reported_and_the_rest_are_formatted() {
     );
 }
 
+fn markdown(code: &str) -> String {
+    format!("# Notes\n\n```motoko\n{code}```\n")
+}
+
+#[test]
+fn directories_are_searched_for_markdown_only_when_asked() {
+    let files = [
+        ("A.mo", UNFORMATTED),
+        ("docs/B.md", &markdown(UNFORMATTED)),
+        ("docs/C.markdown", &markdown(UNFORMATTED)),
+    ];
+    let dir = project(&files);
+    assert_eq!(
+        run(&dir, &["--check", "."], ""),
+        (
+            1,
+            "./A.mo\nThe file needs formatting.\n".into(),
+            String::new()
+        )
+    );
+    let all = "./A.mo\n./docs/B.md\n./docs/C.markdown\n3 of 3 files need formatting.\n";
+    assert_eq!(
+        run(&dir, &["--check", "--markdown", "."], ""),
+        (1, all.into(), String::new())
+    );
+
+    let dir = project(&[files.as_slice(), &[("mo-fmt.toml", "markdown = true\n")]].concat());
+    assert_eq!(
+        run(&dir, &["--check", "."], ""),
+        (1, all.into(), String::new())
+    );
+    assert_eq!(run(&dir, &["."], "").0, 0);
+    assert_eq!(read(&dir, "docs/B.md"), markdown(FORMATTED));
+
+    // A file named on the command line is formatted without the flag.
+    let dir = project(&files);
+    assert_eq!(
+        run(&dir, &["docs/B.md"], ""),
+        (
+            0,
+            "docs/B.md\nFormatted 1 of 1 file.\n".into(),
+            String::new()
+        )
+    );
+    assert_eq!(read(&dir, "docs/B.md"), markdown(FORMATTED));
+}
+
+#[test]
+fn a_markdown_block_that_fails_to_parse_is_reported_at_its_line_and_the_others_are_formatted() {
+    let source = format!("{}\n{}", markdown("let x = ;\n"), markdown(UNFORMATTED));
+    let dir = project(&[("A.md", &source)]);
+    let error = "A.md:4:7: unexpected input\n  |\n4 | let x = ;\n  |       ^\n";
+    assert_eq!(
+        run(&dir, &["A.md"], ""),
+        (
+            2,
+            "A.md\nFormatted 1 of 1 file; 1 failed to format.\n".into(),
+            error.into()
+        )
+    );
+    assert_eq!(
+        read(&dir, "A.md"),
+        format!("{}\n{}", markdown("let x = ;\n"), markdown(FORMATTED))
+    );
+    assert_eq!(
+        run(&dir, &["--check", "A.md"], ""),
+        (2, "The file failed to format.\n".into(), error.into())
+    );
+}
+
+#[test]
+fn markdown_messages_locate_blocks_in_the_file_as_written() {
+    let source = "```mo\nlet a = 1;\n\n\n\nlet b = 2;\n```\n\n```mo\nlet c = ;\n```\n\n```mo\n  let d = 1;\n let e = 2;\n";
+    let dir = project(&[("A.md", source)]);
+    // Before the write, the error is on line 10 and the warning on line 13; the write drops two blank lines.
+    let (code, _, stderr) = run(&dir, &["--check", "A.md"], "");
+    assert_eq!(code, 2);
+    assert!(stderr.starts_with("A.md:13: warning:"), "{stderr}");
+    assert!(stderr.contains("A.md:10:7: unexpected input"), "{stderr}");
+    let (code, _, stderr) = run(&dir, &["A.md"], "");
+    assert_eq!(code, 2);
+    assert!(stderr.starts_with("A.md:11: warning:"), "{stderr}");
+    assert!(stderr.contains("A.md:8:7: unexpected input"), "{stderr}");
+    assert_eq!(read(&dir, "A.md").lines().nth(7), Some("let c = ;"));
+}
+
+#[test]
+fn a_markdown_block_left_as_it_is_is_a_warning() {
+    let source = "```motoko\nlet x = f(1,2);\n";
+    let dir = project(&[("A.md", source)]);
+    assert_eq!(
+        run(&dir, &["--check", "A.md"], ""),
+        (
+            0,
+            "The file is formatted.\n".into(),
+            "A.md:1: warning: the code block isn't closed; left as it is\n".into()
+        )
+    );
+}
+
+#[test]
+fn formats_markdown_on_stdin() {
+    let dir = project(&[]);
+    assert_eq!(
+        run(&dir, &["--stdin-filepath", "A.md"], &markdown(UNFORMATTED)),
+        (0, markdown(FORMATTED), String::new())
+    );
+    let (code, stdout, stderr) = run(
+        &dir,
+        &["--stdin-filepath", "A.md"],
+        &markdown("let x = ;\n"),
+    );
+    assert_eq!((code, stdout.as_str()), (2, ""));
+    assert!(stderr.starts_with("A.md:4:7: unexpected input"), "{stderr}");
+}
+
 #[test]
 fn formats_stdin() {
     let dir = project(&[]);
@@ -279,7 +395,7 @@ fn usage_errors_exit_2() {
         (code, stderr.as_str()),
         (
             2,
-            "notes.txt: not a Motoko file\nmissing.mo: no such file or directory\n"
+            "notes.txt: not a Motoko or Markdown file\nmissing.mo: no such file or directory\n"
         )
     );
 }

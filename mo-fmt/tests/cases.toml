@@ -1249,6 +1249,20 @@ let x = aaaa
 '''
 
 [[case]]
+why = "preserve: layout: a `func … =` body on its own line inside a broken method chain stays indented past the line holding `func`"
+source = '''
+docs.toEntity("doc")
+  .ownedByWith("owner", func (caller, owner) =
+    admins.get(caller) != null or owner == #text(caller.toText()))
+  .build()'''
+output = '''
+docs.toEntity("doc")
+  .ownedByWith("owner", func(caller, owner) =
+    admins.get(caller) != null or owner == #text(caller.toText()))
+  .build()
+'''
+
+[[case]]
 why = "preserve: comments: a block comment before an item stays on its line"
 source = '''
 let a = [
