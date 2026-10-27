@@ -18,7 +18,7 @@ struct Args {
     /// skipping `node_modules` and dot-directories.
     paths: Vec<PathBuf>,
 
-    /// Search directories for Markdown files (`.md`, `.markdown`) too. Overrides `markdown` in `mo-fmt.toml`
+    /// Search directories for Markdown files (`.md`, `.markdown`) too, as `markdown = true` in `mo-fmt.toml` does
     #[arg(long)]
     markdown: bool,
 
@@ -84,7 +84,7 @@ fn main() -> ExitCode {
     let mut files = Vec::new();
     for path in &args.paths {
         if path.is_dir() {
-            let (found, errors) = motoko_files(path, config.markdown);
+            let (found, errors) = source_files(path, config.markdown);
             files.extend(found);
             for e in errors {
                 eprintln!("{e}");
@@ -138,7 +138,8 @@ fn main() -> ExitCode {
 
 /// The line that ends a run over `total` files: `changed` changed, or would have with `check`, and `failed` failed to format.
 fn summary(check: bool, total: usize, changed: usize, failed: usize) -> String {
-    // A file that failed is neither formatted nor in need of it, so `--check` mustn't call it formatted.
+    // A file that failed is not formatted, so `--check` mustn't call it that. A Markdown file can fail and still need
+    // formatting, in its other code blocks.
     let failures = match failed {
         0 => String::new(),
         n => format!("; {n} failed to format"),
@@ -150,6 +151,7 @@ fn summary(check: bool, total: usize, changed: usize, failed: usize) -> String {
         format!("Formatted {changed} of {total} {noun}{failures}.")
     } else if total == 1 {
         match (changed, failed) {
+            (1, 1) => "The file needs formatting, and part of it failed to format.",
             (1, _) => "The file needs formatting.",
             (_, 1) => "The file failed to format.",
             _ => "The file is formatted.",
@@ -343,7 +345,7 @@ fn message(file: &Path, e: &Error) -> String {
 
 /// The `.mo` files under `dir`, and the Markdown files with `markdown`, and an error for each part of it that
 /// couldn't be read.
-fn motoko_files(dir: &Path, markdown: bool) -> (Vec<PathBuf>, Vec<String>) {
+fn source_files(dir: &Path, markdown: bool) -> (Vec<PathBuf>, Vec<String>) {
     let mut files = Vec::new();
     let mut errors = Vec::new();
     let walk = ignore::WalkBuilder::new(dir)
@@ -396,6 +398,13 @@ mod tests {
             ),
             (true, 1, 0, 0, "The file is formatted."),
             (true, 1, 1, 0, "The file needs formatting."),
+            (
+                true,
+                1,
+                1,
+                1,
+                "The file needs formatting, and part of it failed to format.",
+            ),
             (true, 1, 0, 1, "The file failed to format."),
             (true, 2, 0, 0, "All 2 files are formatted."),
             (true, 3, 1, 0, "1 of 3 files needs formatting."),

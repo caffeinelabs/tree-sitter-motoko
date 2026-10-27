@@ -107,7 +107,7 @@ pub fn rewrite(source: &str, rules: &Rules) -> Result<String, Error> {
 }
 
 /// The spans of the items a `// mo-fmt-ignore` keeps as written, as the printer finds them, which no edit may touch.
-fn ignored(root: &Branch<'_>) -> Vec<(usize, usize)> {
+pub(crate) fn ignored(root: &Branch<'_>) -> Vec<(usize, usize)> {
     let mut out = Vec::new();
     for b in root.branches() {
         if list_of(b).is_none() {

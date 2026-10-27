@@ -27,7 +27,7 @@ mo-fmt --markdown .                          # the Motoko code blocks of .md fil
 
 ## Markdown
 
-mo-fmt formats the code blocks tagged `motoko` or `mo` in a Markdown file, and leaves the rest of the file as written.
+mo-fmt formats the code blocks tagged `motoko` or `mo` in a Markdown file, and leaves the rest of the file as written. A file whose first line ends in CRLF keeps CRLF line endings.
 
 - A `.md` or `.markdown` file named on the command line is always formatted. Directories are searched for them too with `--markdown` or `markdown = true` in `mo-fmt.toml`. `--stdin-filepath` with a Markdown path formats stdin as Markdown.
 - The tag is the first word after the fence, so ```` ```motoko no-repl title="a.mo" ```` counts, and ```` ```mo:pkg/lib.mo ````, an untagged block and a block of another language don't. An empty block, such as one a docs site fills in from a file, is left as it is.

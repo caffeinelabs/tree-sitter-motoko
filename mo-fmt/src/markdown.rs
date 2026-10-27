@@ -5,12 +5,13 @@ use std::ops::Range;
 use pulldown_cmark::{CodeBlockKind, Event, Parser, Tag, TagEnd};
 
 use crate::tree::{Lines, Node, SyntaxError};
-use crate::{Config, Error, format_here, normalize, on_large_stack, tree, verify};
+use crate::{Config, Error, format_here, normalize, on_large_stack, rewrite, tree, verify};
 
 /// A Markdown file with its Motoko code blocks formatted.
 #[derive(Debug)]
 pub struct Markdown {
-    /// The file with each block that formatted replaced; everything else is as written, but for LF line endings.
+    /// The file with each block that formatted replaced, and everything else as written. It keeps CRLF line
+    /// endings if its first line has one, and the rest become LF.
     pub formatted: String,
     /// One for each block that didn't format, located in the Markdown file. The block is left as written.
     pub errors: Vec<Error>,
@@ -91,6 +92,15 @@ pub fn format_markdown(source: &str, config: &Config) -> Result<Markdown, Error>
             }
         }
         formatted.push_str(&text[copied..]);
+        // Only a block that changed changes the file, so the rest of it keeps its line endings.
+        let crlf = source
+            .find('\n')
+            .is_some_and(|i| source[..i].ends_with('\r'));
+        if formatted[bom.len()..] == *text {
+            formatted = source.to_string();
+        } else if crlf {
+            formatted = formatted.replace('\n', "\r\n");
+        }
         Ok(Markdown {
             formatted,
             errors,
@@ -129,13 +139,15 @@ fn blocks(text: &str) -> Vec<Block> {
                 }
                 ignore = false;
             }
-            Event::Text(code) => {
-                if let Some(block) = &mut current {
+            Event::Text(code) => match &mut current {
+                Some(block) => {
                     let start = block.code.as_ref().map_or(range.start, |c| c.start);
                     block.code = Some(start..range.end);
                     block.text.push_str(&code);
                 }
-            }
+                // The text of a tight list's item, which has no paragraph.
+                None => ignore = false,
+            },
             Event::End(TagEnd::CodeBlock) => {
                 if let Some(mut block) = current.take() {
                     // An unclosed block runs to the end of the file, so its code ends where it does.
@@ -148,10 +160,7 @@ fn blocks(text: &str) -> Vec<Block> {
             Event::End(TagEnd::HtmlBlock) => ignore = is_ignore_comment(&html),
             // A comment before a list or blockquote reaches the block that opens it.
             Event::Start(Tag::List(_) | Tag::Item | Tag::BlockQuote(_)) => {}
-            Event::Start(_)
-            | Event::End(TagEnd::List(_) | TagEnd::Item | TagEnd::BlockQuote(_))
-            | Event::Rule => ignore = false,
-            _ => {}
+            _ => ignore = false,
         }
     }
     blocks
@@ -186,26 +195,56 @@ fn prefix<'a>(written: &'a str, code: &str) -> Option<&'a str> {
 
 /// Formats a code block, which can be a lone member of an actor, object or module, such as a `public func`.
 fn format_code(code: &str, config: &Config) -> Result<String, Error> {
-    match format_here(code, config) {
-        Err(Error::Syntax(e)) => in_module(code, config).ok_or(Error::Syntax(e)),
-        result => result,
+    let e = match format_here(code, config) {
+        Err(Error::Syntax(e)) => e,
+        result => return result,
+    };
+    match in_module(code, config) {
+        Ok(Some(formatted)) => Ok(formatted),
+        // An error further in, inside the code, is one in a member, as in `public func f() { let x = ; }`.
+        Err(Error::Syntax(w)) if w.line > 1 && (w.line - 1, w.column) > (e.line, e.column) => {
+            match code.lines().nth(w.line - 2) {
+                Some(line) => Err(Error::Syntax(SyntaxError::new(
+                    w.message,
+                    w.line - 2,
+                    w.column - 1,
+                    line,
+                ))),
+                None => Err(Error::Syntax(e)),
+            }
+        }
+        Ok(None) | Err(Error::Syntax(_)) => Err(Error::Syntax(e)),
+        Err(internal) => Err(internal),
     }
 }
 
-/// Formats `code` as the body of a module, and then without one.
-fn in_module(code: &str, config: &Config) -> Option<String> {
-    const OPEN: &str = "module {\n";
-    const CLOSE: &str = "}\n";
-    let formatted = format_here(&format!("{OPEN}{code}{CLOSE}"), config).ok()?;
+const OPEN: &str = "module {\n";
+const CLOSE: &str = "}\n";
+
+/// Formats `code` as the body of a module, and then without one. `None` if it can't be taken out of the module
+/// as it is.
+fn in_module(code: &str, config: &Config) -> Result<Option<String>, Error> {
+    let formatted = format_here(&format!("{OPEN}{code}{CLOSE}"), config)?;
+    Ok(unwrap_module(&formatted, config))
+}
+
+fn unwrap_module(formatted: &str, config: &Config) -> Option<String> {
     let body = formatted.strip_prefix(OPEN)?.strip_suffix(CLOSE)?;
-    let root = tree::parse(&formatted).ok()?;
+    let root = tree::parse(formatted).ok()?;
     let mut verbatim = Vec::new();
     multiline_tokens(&root, &mut verbatim);
+    if let Node::Branch(b) = &root {
+        verbatim.extend(
+            rewrite::ignored(b)
+                .into_iter()
+                .map(|(start, end)| start..end),
+        );
+    }
     let indent = " ".repeat(config.indent_width.get());
     let mut start = OPEN.len();
     let mut dedented = String::new();
     for line in body.split_inclusive('\n') {
-        // A line that continues a block comment or text literal is part of it, as written.
+        // A line that continues a block comment, a text literal or an item kept as written is part of it, as written.
         if line == "\n"
             || verbatim
                 .iter()
@@ -217,7 +256,7 @@ fn in_module(code: &str, config: &Config) -> Option<String> {
         }
         start += line.len();
     }
-    verify::verify(&root, &formatted, &format!("{OPEN}{dedented}{CLOSE}")).ok()?;
+    verify::verify(&root, formatted, &format!("{OPEN}{dedented}{CLOSE}")).ok()?;
     Some(dedented)
 }
 
