@@ -1,5 +1,6 @@
 //! The normalised tree: every byte of the source belongs to exactly one leaf, so printing the leaves in order reproduces it.
 
+use std::cell::Cell;
 use std::fmt;
 use std::sync::LazyLock;
 
@@ -234,20 +235,32 @@ pub fn parse(source: &str) -> Result<Node<'_>, SyntaxError> {
         .expect("parsing is never cancelled");
     let ts_root = tree.root_node();
 
-    let mut root = Normalizer { source }.root(ts_root);
+    let normalizer = Normalizer {
+        source,
+        uncovered: Cell::new(false),
+    };
+    let mut root = normalizer.root(ts_root);
     hoist_trailing_whitespace(&mut root, source);
     let root = Node::Branch(root);
-    if ts_root.has_error() {
+    if ts_root.has_error() || normalizer.uncovered.get() {
         let lines = Lines::new(source);
-        // It swallows the rest of the file, so it's the likely cause of any other error.
-        if let Some(open) = unclosed_comment(&root) {
+        let problem = find_problem(&root, None);
+        // It swallows the rest of the file, so it's the likely cause of any error that reaches up to it, such as
+        // the construct it cuts short. An error with code between it and the comment is independent.
+        if let Some(open) = unclosed_comment(&root)
+            && problem.as_ref().is_none_or(|p| {
+                source
+                    .get(p.node.end()..open.start())
+                    .is_none_or(|between| between.trim().is_empty())
+            })
+        {
             return Err(syntax_error(
                 &lines,
                 open.start(),
                 "unclosed block comment".into(),
             ));
         }
-        return Err(match find_problem(&root, None) {
+        return Err(match problem {
             Some(problem) => syntax_error(&lines, problem.node.start(), problem.message()),
             None => SyntaxError {
                 message: "the parser reported an error but no offending node was found; this is a bug in mo-fmt".into(),
@@ -262,6 +275,8 @@ pub fn parse(source: &str) -> Result<Node<'_>, SyntaxError> {
 
 struct Normalizer<'a> {
     source: &'a str,
+    /// Whether any source text is in no node, which only error recovery leaves.
+    uncovered: Cell<bool>,
 }
 
 impl<'a> Normalizer<'a> {
@@ -303,13 +318,15 @@ impl<'a> Normalizer<'a> {
             }));
         }
         // Recovery leaves the hidden characters of a broken `comment_text` uncovered, e.g. after an unclosed `/*`.
+        // Not flagged as the error itself, so a problem is reported at the `ERROR` around it rather than mid-comment.
         if !rest.is_empty() {
+            self.uncovered.set(true);
             out.push(Node::Token(Token {
                 start: start + ws,
                 kind: "ERROR",
                 named: true,
                 extra: false,
-                error: true,
+                error: false,
                 missing: false,
                 text: rest,
             }));
@@ -481,16 +498,29 @@ impl Problem<'_, '_> {
 /// a missing `*/`, or drops it into an `ERROR`, leaving its text uncovered.
 fn unclosed_comment<'n, 'a>(n: &'n Node<'a>) -> Option<&'n Node<'a>> {
     let Node::Branch(b) = n else { return None };
-    let open = || b.children.iter().find(|c| c.is_token("/*"));
-    let unclosed = if b.kind == "block_comment" {
-        b.children
+    if b.kind == "block_comment" {
+        if b.children
             .iter()
             .any(|c| matches!(c, Node::Token(t) if t.missing && t.kind == "*/"))
-    } else {
-        b.error && !b.children.iter().any(|c| c.is_token("*/"))
-    };
-    if unclosed && let Some(open) = open() {
-        return Some(open);
+        {
+            return b.children.iter().find(|c| c.is_token("/*"));
+        }
+    } else if b.error {
+        // Loose `/*` and `*/` nest as the lexer reads them; a stray `*/` closes nothing.
+        let (mut depth, mut open) = (0, None);
+        for c in &b.children {
+            if c.is_token("/*") {
+                if depth == 0 {
+                    open = Some(c);
+                }
+                depth += 1;
+            } else if c.is_token("*/") && depth > 0 {
+                depth -= 1;
+            }
+        }
+        if depth > 0 {
+            return open;
+        }
     }
     b.children.iter().find_map(unclosed_comment)
 }

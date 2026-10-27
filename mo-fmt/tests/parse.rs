@@ -79,11 +79,32 @@ fn an_unclosed_block_comment_is_located_at_its_opening() {
         ("/* a /* b */ c\n", 1, 1),
         ("let x = 1; /* a */\nlet y = { /* b\n", 2, 11),
         ("let x = f(/* a\n", 1, 11),
+        // A stray `*/` before it closes nothing.
+        ("*/ /* a\n", 1, 4),
+        ("/* a\n*/ */ /* b", 2, 7),
+        // A truncated test file, shrunk: recovery ends the cut-short declaration's `ERROR` just before the comment.
+        (
+            "type C<A<:B>=A->B;let f=(func():t=0):C<>;func<>():C=func</**/>C=x;\nfunc<C,/*<",
+            2,
+            8,
+        ),
     ] {
         let e = parse(source).expect_err(source);
         assert_eq!(
             (e.message.as_str(), e.line, e.column),
             ("unclosed block comment", line, column),
+            "{source:?}"
+        );
+    }
+    // An earlier error is reported first, even when recovery from it opens a comment inside a later string.
+    for source in [
+        "let x = @@@;\n/* c\n",
+        "let a = \"bad \\q escape\";\nlet b = \"src/*.mo\";\n",
+    ] {
+        let e = parse(source).expect_err(source);
+        assert_eq!(
+            (e.message.as_str(), e.line, e.column),
+            ("unexpected input", 1, 9),
             "{source:?}"
         );
     }
