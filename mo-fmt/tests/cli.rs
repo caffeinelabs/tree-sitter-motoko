@@ -331,6 +331,22 @@ fn a_markdown_block_that_fails_to_parse_is_reported_at_its_line_and_the_others_a
 }
 
 #[test]
+fn markdown_messages_locate_blocks_in_the_file_as_written() {
+    let source = "```mo\nlet a = 1;\n\n\n\nlet b = 2;\n```\n\n```mo\nlet c = ;\n```\n\n```mo\n  let d = 1;\n let e = 2;\n";
+    let dir = project(&[("A.md", source)]);
+    // Before the write, the error is on line 10 and the warning on line 13; the write drops two blank lines.
+    let (code, _, stderr) = run(&dir, &["--check", "A.md"], "");
+    assert_eq!(code, 2);
+    assert!(stderr.starts_with("A.md:13: warning:"), "{stderr}");
+    assert!(stderr.contains("A.md:10:7: unexpected input"), "{stderr}");
+    let (code, _, stderr) = run(&dir, &["A.md"], "");
+    assert_eq!(code, 2);
+    assert!(stderr.starts_with("A.md:11: warning:"), "{stderr}");
+    assert!(stderr.contains("A.md:8:7: unexpected input"), "{stderr}");
+    assert_eq!(read(&dir, "A.md").lines().nth(7), Some("let c = ;"));
+}
+
+#[test]
 fn a_markdown_block_left_as_it_is_is_a_warning() {
     let source = "```motoko\nlet x = f(1,2);\n";
     let dir = project(&[("A.md", source)]);
