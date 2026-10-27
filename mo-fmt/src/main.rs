@@ -273,7 +273,14 @@ fn format_file(file: &Path, config: &Config, check: bool) -> Outcome {
     outcome.changed = true;
     if !check {
         let error = match replace(file, &source, &formatted) {
-            Ok(true) => None,
+            Ok(true) => {
+                // A block that changed length moves the ones after it, so the messages are about the file as written.
+                if !outcome.errors.is_empty() || !outcome.warnings.is_empty() {
+                    let written = format_source(file, &formatted, config);
+                    (outcome.errors, outcome.warnings) = (written.errors, written.warnings);
+                }
+                None
+            }
             Ok(false) => Some(format!(
                 "{}: changed while being formatted; left as it is",
                 file.display()
