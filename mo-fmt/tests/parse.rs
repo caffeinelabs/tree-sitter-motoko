@@ -46,6 +46,18 @@ fn accepted_input_round_trips() {
 }
 
 #[test]
+fn broken_input_never_panics() {
+    // Cut short or commented out from any point, the samples exercise error recovery's odd tree shapes.
+    for entry in std::fs::read_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/parse")).unwrap() {
+        let source = std::fs::read_to_string(entry.unwrap().path()).unwrap();
+        for (at, _) in source.char_indices() {
+            let _ = parse(&source[..at]);
+            let _ = parse(&format!("{}/* {}", &source[..at], &source[at..]));
+        }
+    }
+}
+
+#[test]
 fn rejected_input_is_located() {
     for (source, message, line) in [
         ("let x = { a = 1;\n", "", 1),

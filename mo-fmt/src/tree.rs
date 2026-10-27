@@ -237,12 +237,12 @@ pub fn parse(source: &str) -> Result<Node<'_>, SyntaxError> {
 
     let normalizer = Normalizer {
         source,
-        uncovered: Cell::new(false),
+        uncovered: Cell::new(None),
     };
     let mut root = normalizer.root(ts_root);
     hoist_trailing_whitespace(&mut root, source);
     let root = Node::Branch(root);
-    if ts_root.has_error() || normalizer.uncovered.get() {
+    if ts_root.has_error() || normalizer.uncovered.get().is_some() {
         let lines = Lines::new(source);
         let problem = find_problem(&root, None);
         // It swallows the rest of the file, so it's the likely cause of any error that reaches up to it, such as
@@ -260,9 +260,12 @@ pub fn parse(source: &str) -> Result<Node<'_>, SyntaxError> {
                 "unclosed block comment".into(),
             ));
         }
-        return Err(match problem {
-            Some(problem) => syntax_error(&lines, problem.node.start(), problem.message()),
-            None => SyntaxError {
+        return Err(match (problem, normalizer.uncovered.get()) {
+            (Some(problem), _) => {
+                syntax_error(&lines, problem.node.start(), problem.message())
+            }
+            (None, Some(at)) => syntax_error(&lines, at, "unexpected input".into()),
+            (None, None) => SyntaxError {
                 message: "the parser reported an error but no offending node was found; this is a bug in mo-fmt".into(),
                 line: 1,
                 column: 1,
@@ -275,8 +278,8 @@ pub fn parse(source: &str) -> Result<Node<'_>, SyntaxError> {
 
 struct Normalizer<'a> {
     source: &'a str,
-    /// Whether any source text is in no node, which only error recovery leaves.
-    uncovered: Cell<bool>,
+    /// Where the first source text in no node starts, which only error recovery leaves.
+    uncovered: Cell<Option<usize>>,
 }
 
 impl<'a> Normalizer<'a> {
@@ -320,7 +323,9 @@ impl<'a> Normalizer<'a> {
         // Recovery leaves the hidden characters of a broken `comment_text` uncovered, e.g. after an unclosed `/*`.
         // Not flagged as the error itself, so a problem is reported at the `ERROR` around it rather than mid-comment.
         if !rest.is_empty() {
-            self.uncovered.set(true);
+            if self.uncovered.get().is_none() {
+                self.uncovered.set(Some(start + ws));
+            }
             out.push(Node::Token(Token {
                 start: start + ws,
                 kind: "ERROR",
