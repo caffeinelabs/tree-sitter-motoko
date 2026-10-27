@@ -234,8 +234,16 @@ pub fn parse(source: &str) -> Result<Node<'_>, SyntaxError> {
     let root = Node::Branch(root);
     if ts_root.has_error() {
         let lines = Lines::new(source);
+        // It swallows the rest of the file, so it's the likely cause of any other error.
+        if let Some(open) = unclosed_comment(&root) {
+            return Err(syntax_error(
+                &lines,
+                open.start(),
+                "unclosed block comment".into(),
+            ));
+        }
         return Err(match find_problem(&root, None) {
-            Some(problem) => syntax_error(&lines, problem),
+            Some(problem) => syntax_error(&lines, problem.node.start(), problem.message()),
             None => SyntaxError {
                 message: "the parser reported an error but no offending node was found; this is a bug in mo-fmt".into(),
                 line: 1,
@@ -281,12 +289,26 @@ impl<'a> Normalizer<'a> {
             return;
         }
         let text = &self.source[start..end];
-        assert!(
-            text.trim().is_empty(),
-            "normalize: non-whitespace between nodes at {start}..{end}: {:?}",
-            &text[..text.len().min(40)]
-        );
-        out.push(Node::Text(Gap { start, text }));
+        let rest = text.trim_start();
+        let ws = text.len() - rest.len();
+        if ws > 0 {
+            out.push(Node::Text(Gap {
+                start,
+                text: &text[..ws],
+            }));
+        }
+        // Recovery leaves the hidden characters of a broken `comment_text` uncovered, e.g. after an unclosed `/*`.
+        if !rest.is_empty() {
+            out.push(Node::Token(Token {
+                start: start + ws,
+                kind: "ERROR",
+                named: true,
+                extra: false,
+                error: true,
+                missing: false,
+                text: rest,
+            }));
+        }
     }
 
     fn child(&self, node: tree_sitter::Node, field: Option<&'static str>) -> Node<'a> {
@@ -437,16 +459,39 @@ fn find_problem<'n, 'a>(
     b.children.iter().find_map(|c| find_problem(c, flagged))
 }
 
-fn syntax_error(lines: &Lines<'_>, problem: Problem<'_, '_>) -> SyntaxError {
-    let (row, column) = lines.pos(problem.node.start());
-    let message = if problem.missing {
-        match problem.ty {
-            "}" => "missing closing brace".to_string(),
-            ty => format!("missing `{ty}`"),
+impl Problem<'_, '_> {
+    fn message(&self) -> String {
+        if self.missing {
+            match self.ty {
+                "}" => "missing closing brace".to_string(),
+                ty => format!("missing `{ty}`"),
+            }
+        } else {
+            "unexpected input".to_string()
         }
+    }
+}
+
+/// The `/*` of the outermost block comment the file ends inside. Recovery either keeps the comment and supplies
+/// a missing `*/`, or drops it into an `ERROR`, leaving its text uncovered.
+fn unclosed_comment<'n, 'a>(n: &'n Node<'a>) -> Option<&'n Node<'a>> {
+    let Node::Branch(b) = n else { return None };
+    let open = || b.children.iter().find(|c| c.is_token("/*"));
+    let unclosed = if b.kind == "block_comment" {
+        b.children
+            .iter()
+            .any(|c| matches!(c, Node::Token(t) if t.missing && t.kind == "*/"))
     } else {
-        "unexpected input".to_string()
+        b.error && !b.children.iter().any(|c| c.is_token("*/"))
     };
+    if unclosed && let Some(open) = open() {
+        return Some(open);
+    }
+    b.children.iter().find_map(unclosed_comment)
+}
+
+fn syntax_error(lines: &Lines<'_>, offset: usize, message: String) -> SyntaxError {
+    let (row, column) = lines.pos(offset);
     let gutter = (row + 1).to_string().len();
     let line = lines.line(row);
     // Tabs stay tabs, so the caret lines up however wide the terminal draws them.

@@ -50,7 +50,6 @@ fn rejected_input_is_located() {
     for (source, message, line) in [
         ("let x = { a = 1;\n", "", 1),
         ("let x = @@@ ;\n", "unexpected input", 1),
-        ("/* never closed\n", "missing `*/`", 2),
         ("let x = 1;;\n", "unexpected input", 1),
         // A zero-width recovery node, reported rather than blamed on the normaliser.
         ("import I \"x\";\ninclude I;\n", "unexpected input", 2),
@@ -69,6 +68,25 @@ fn rejected_input_is_located() {
     // The caret keeps a tab as a tab, so it lines up under the error.
     let e = parse("\tlet x = @@@ ;\n").unwrap_err();
     assert!(e.frame.ends_with("| \t        ^"), "{:?}", e.frame);
+}
+
+#[test]
+fn an_unclosed_block_comment_is_located_at_its_opening() {
+    // Recovery can drop the comment's text from the tree, which once panicked the normaliser.
+    for (source, line, column) in [
+        ("/* never closed\n", 1, 1),
+        ("let y = { /* unclosed\n};\n", 1, 11),
+        ("/* a /* b */ c\n", 1, 1),
+        ("let x = 1; /* a */\nlet y = { /* b\n", 2, 11),
+        ("let x = f(/* a\n", 1, 11),
+    ] {
+        let e = parse(source).expect_err(source);
+        assert_eq!(
+            (e.message.as_str(), e.line, e.column),
+            ("unclosed block comment", line, column),
+            "{source:?}"
+        );
+    }
 }
 
 fn mode_of(source: &str, kind: &str) -> Option<Option<Mode>> {
