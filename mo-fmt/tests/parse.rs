@@ -46,11 +46,22 @@ fn accepted_input_round_trips() {
 }
 
 #[test]
+fn broken_input_never_panics() {
+    // Cut short or commented out from any point, the samples exercise error recovery's odd tree shapes.
+    for entry in std::fs::read_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/parse")).unwrap() {
+        let source = std::fs::read_to_string(entry.unwrap().path()).unwrap();
+        for (at, _) in source.char_indices() {
+            let _ = parse(&source[..at]);
+            let _ = parse(&format!("{}/* {}", &source[..at], &source[at..]));
+        }
+    }
+}
+
+#[test]
 fn rejected_input_is_located() {
     for (source, message, line) in [
         ("let x = { a = 1;\n", "", 1),
         ("let x = @@@ ;\n", "unexpected input", 1),
-        ("/* never closed\n", "missing `*/`", 2),
         ("let x = 1;;\n", "unexpected input", 1),
         // A zero-width recovery node, reported rather than blamed on the normaliser.
         ("import I \"x\";\ninclude I;\n", "unexpected input", 2),
@@ -69,6 +80,46 @@ fn rejected_input_is_located() {
     // The caret keeps a tab as a tab, so it lines up under the error.
     let e = parse("\tlet x = @@@ ;\n").unwrap_err();
     assert!(e.frame.ends_with("| \t        ^"), "{:?}", e.frame);
+}
+
+#[test]
+fn an_unclosed_block_comment_is_located_at_its_opening() {
+    // Recovery can drop the comment's text from the tree, which once panicked the normaliser.
+    for (source, line, column) in [
+        ("/* never closed\n", 1, 1),
+        ("let y = { /* unclosed\n};\n", 1, 11),
+        ("/* a /* b */ c\n", 1, 1),
+        ("let x = 1; /* a */\nlet y = { /* b\n", 2, 11),
+        ("let x = f(/* a\n", 1, 11),
+        // A stray `*/` before it closes nothing.
+        ("*/ /* a\n", 1, 4),
+        ("/* a\n*/ */ /* b", 2, 7),
+        // A truncated test file, shrunk: recovery ends the cut-short declaration's `ERROR` just before the comment.
+        (
+            "type C<A<:B>=A->B;let f=(func():t=0):C<>;func<>():C=func</**/>C=x;\nfunc<C,/*<",
+            2,
+            8,
+        ),
+    ] {
+        let e = parse(source).expect_err(source);
+        assert_eq!(
+            (e.message.as_str(), e.line, e.column),
+            ("unclosed block comment", line, column),
+            "{source:?}"
+        );
+    }
+    // An earlier error is reported first, even when recovery from it opens a comment inside a later string.
+    for source in [
+        "let x = @@@;\n/* c\n",
+        "let a = \"bad \\q escape\";\nlet b = \"src/*.mo\";\n",
+    ] {
+        let e = parse(source).expect_err(source);
+        assert_eq!(
+            (e.message.as_str(), e.line, e.column),
+            ("unexpected input", 1, 9),
+            "{source:?}"
+        );
+    }
 }
 
 fn mode_of(source: &str, kind: &str) -> Option<Option<Mode>> {
